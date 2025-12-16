@@ -1,0 +1,2038 @@
+using Csla;
+using Csla.Core;
+using Edmatix.Core;
+using Edmatix.Entity;
+using ExPro.Model.Base;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Http;
+using Microsoft.CodeAnalysis;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mail;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using System.Web;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+namespace Edmatix.Model
+{
+    [Serializable]
+    public class WhatsAppCommunicationContainer : EdmatixModelBase<WhatsAppCommunicationContainer>
+    {
+        #region Private Members
+        private bool IsTemplate = false;
+        public string Meta_Image = string.Empty;
+        public string Meta_ImageID = string.Empty;
+        public string Meta_DocumentID = string.Empty;
+        public string Meta_PhoneNumber = string.Empty;
+        public string Meta_AccessToken = string.Empty;
+        public string Meta_Api=string.Empty;
+        bool document = false;
+
+        #endregion
+        #region Properties
+        #region GetTemplateDetails
+        public static readonly PropertyInfo<object> GetTemplateDetailsProperty = RegisterProperty<object>(c => c.GetTemplateDetails);
+        /// <summary>
+        /// Holds the StudentNumber for CommunicationContainer
+        /// </summary>
+        public object GetTemplateDetails
+        {
+            set => SetProperty<object>(GetTemplateDetailsProperty, value);
+            get => GetProperty<object>(GetTemplateDetailsProperty);
+        }
+        #endregion
+        #region ECommunicationContainerType
+        public static readonly PropertyInfo<ECommunicationType> CommunicationTypeProperty = RegisterProperty<ECommunicationType>(new PropertyInfo<ECommunicationType>("CommunicationType"));
+        /// <summary>
+        /// Holds the CommunicationType for the table CommunicationContainer
+        /// </summary>
+        public ECommunicationType CommunicationType
+        {
+            set => SetProperty<ECommunicationType>(CommunicationTypeProperty, value);
+            get => GetProperty<ECommunicationType>(CommunicationTypeProperty);
+        }
+        #endregion
+        #region SchoolID
+        public static readonly PropertyInfo<Guid> SchoolIDProperty = RegisterProperty<Guid>(new PropertyInfo<Guid>("SchoolID"));
+        /// <summary>
+        /// Holds the SchoolID for CommunicationContainer
+        /// </summary>
+        public Guid SchoolID
+        {
+            set => SetProperty<Guid>(SchoolIDProperty, value);
+            get => GetProperty<Guid>(SchoolIDProperty);
+        }
+        #endregion
+        #region GradeLevelID
+        public static readonly PropertyInfo<Guid> GradeLevelIDProperty = RegisterProperty<Guid>(new PropertyInfo<Guid>("GradeLevelID"));
+        /// <summary>
+        /// Holds the GradeLevelID for CommunicationContainer
+        /// </summary>
+        public Guid GradeLevelID
+        {
+            set => SetProperty<Guid>(GradeLevelIDProperty, value);
+            get => GetProperty<Guid>(GradeLevelIDProperty);
+        }
+        #endregion
+        #region FollowupStatusID
+        public static readonly PropertyInfo<Guid> FollowupStatusIDProperty = RegisterProperty<Guid>(c => c.FollowupStatusID);
+        /// <summary>
+        /// Holds the FollowupStatusID for CommunicationContainer
+        /// </summary>
+        public Guid FollowupStatusID
+        {
+            set => SetProperty<Guid>(FollowupStatusIDProperty, value);
+            get => GetProperty<Guid>(FollowupStatusIDProperty);
+        }
+        #endregion
+        #region StatusID
+        public static readonly PropertyInfo<string> StatusIDProperty = RegisterProperty<string>(c => c.StatusID);
+        /// <summary>
+        /// Holds the StatusID for CommunicationContainer
+        /// </summary>
+        public string StatusID
+        {
+            set => SetProperty<string>(StatusIDProperty, value);
+            get => GetProperty<string>(StatusIDProperty);
+        }
+        #endregion
+
+        #region GradeSectionID
+        public static readonly PropertyInfo<Guid> GradeSectionIDProperty = RegisterProperty<Guid>(new PropertyInfo<Guid>("GradeSectionID"));
+        /// <summary>
+        /// Holds the GradeSectionID for TeacherActivitySearchCriteria
+        /// </summary>
+        public Guid GradeSectionID
+        {
+            set => SetProperty<Guid>(GradeSectionIDProperty, value);
+            get => GetProperty<Guid>(GradeSectionIDProperty);
+        }
+        #endregion
+        #region AdmittanceID
+        public static readonly PropertyInfo<Guid> AdmittanceIDProperty = RegisterProperty<Guid>(c => c.AdmittanceID);
+        /// <summary>
+        /// Holds the AdmittanceID for CommunicationContainer
+        /// </summary>
+        public Guid AdmittanceID
+        {
+            set => SetProperty<Guid>(AdmittanceIDProperty, value);
+            get => GetProperty<Guid>(AdmittanceIDProperty);
+        }
+        #endregion
+
+        #region TemplateID
+        public static readonly PropertyInfo<Guid?> TemplateIDProperty = RegisterProperty<Guid?>(c => c.TemplateID);
+        /// <summary>
+        /// Holds the TemplateID for CommunicationContainer
+        /// </summary>
+        public Guid? TemplateID
+        {
+            set => SetProperty<Guid?>(TemplateIDProperty, value);
+            get => GetProperty<Guid?>(TemplateIDProperty);
+        }
+        #endregion
+        #region StudentID
+        public static readonly PropertyInfo<Guid> StudentIDProperty = RegisterProperty<Guid>(c => c.StudentID);
+        /// <summary>
+        /// Holds the StudentID for CommunicationContainer
+        /// </summary>
+        public Guid StudentID
+        {
+            set => SetProperty<Guid>(StudentIDProperty, value);
+            get => GetProperty<Guid>(StudentIDProperty);
+        }
+        #endregion
+        #region StudentNumber
+        public static readonly PropertyInfo<string> StudentNumberProperty = RegisterProperty<string>(c => c.StudentNumber);
+        /// <summary>
+        /// Holds the StudentNumber for CommunicationContainer
+        /// </summary>
+        public string StudentNumber
+        {
+            set => SetProperty<string>(StudentNumberProperty, value);
+            get => GetProperty<string>(StudentNumberProperty);
+        }
+        #endregion
+        #region EmployeeID
+        public static readonly PropertyInfo<Guid> EmployeeIDProperty = RegisterProperty<Guid>(c => c.EmployeeID);
+        /// <summary>
+        /// Holds the EmployeeID for CommunicationContainer
+        /// </summary>
+        public Guid EmployeeID
+        {
+            set => SetProperty<Guid>(EmployeeIDProperty, value);
+            get => GetProperty<Guid>(EmployeeIDProperty);
+        }
+        #endregion
+        #region Message
+        public static readonly PropertyInfo<string> MessageProperty = RegisterProperty<string>(new PropertyInfo<string>("Message"));
+        /// <summary>
+        /// Holds the Message for CommunicationContainer
+        /// </summary>
+        public string Message
+        {
+            set => SetProperty<string>(MessageProperty, value);
+            get => GetProperty<string>(MessageProperty);
+        }
+        #endregion
+        #region MobileNumber
+        public static readonly PropertyInfo<string> MobileNumberProperty = RegisterProperty<string>(new PropertyInfo<string>("MobileNumber"));
+        /// <summary>
+        /// Holds the Message for CommunicationContainer
+        /// </summary>
+        public string MobileNumber
+        {
+            set => SetProperty<string>(MobileNumberProperty, value);
+            get => GetProperty<string>(MobileNumberProperty);
+        }
+        #endregion
+
+        #region Subject
+        public static readonly PropertyInfo<string> SubjectProperty = RegisterProperty<string>(new PropertyInfo<string>("Subject"));
+        /// <summary>
+        /// Holds the Subject for CommunicationContainer
+        /// </summary>
+        public string Subject
+        {
+            set => SetProperty<string>(SubjectProperty, value);
+            get => GetProperty<string>(SubjectProperty);
+        }
+        #endregion
+        #region IsSchool
+        public static readonly PropertyInfo<bool> IsSchoolProperty = RegisterProperty<bool>(c => c.IsSchool);
+        /// <summary>
+        /// Holds the IsSchool for CommunicationContainer
+        /// </summary>
+        public bool IsSchool
+        {
+            set => SetProperty<bool>(IsSchoolProperty, value);
+            get => GetProperty<bool>(IsSchoolProperty);
+        }
+        #endregion
+        #region IsGeneralSMS
+        public static readonly PropertyInfo<bool> IsGeneralSMSProperty = RegisterProperty<bool>(c => c.IsGeneralSMS);
+        /// <summary>
+        /// Holds the IsGeneralSMS for CommunicationContainer
+        /// </summary>
+        public bool IsGeneralSMS
+        {
+            set => SetProperty<bool>(IsGeneralSMSProperty, value);
+            get => GetProperty<bool>(IsGeneralSMSProperty);
+        }
+        #endregion
+        #region StrGradeLevelID
+        public static readonly PropertyInfo<string> StrGradeLevelIDProperty = RegisterProperty<string>(new PropertyInfo<string>("StrGradeLevelID"));
+        /// <summary>
+        /// Holds the GradeLevelID for CommunicationContainer
+        /// </summary>
+        public string StrGradeLevelID
+        {
+            set => SetProperty<string>(StrGradeLevelIDProperty, value);
+            get => GetProperty<string>(StrGradeLevelIDProperty);
+        }
+        #endregion
+        #region StrGradeSectionID
+        public static readonly PropertyInfo<string> StrGradeSectionIDProperty = RegisterProperty<string>(new PropertyInfo<string>("StrGradeSectionID"));
+        /// <summary>
+        /// Holds the GradeSectionID for CommunicationContainer
+        /// </summary>
+        public string StrGradeSectionID
+        {
+            set => SetProperty<string>(StrGradeSectionIDProperty, value);
+            get => GetProperty<string>(StrGradeSectionIDProperty);
+        }
+        #endregion
+        #region StrAdmittanceID
+        public static readonly PropertyInfo<string> StrAdmittanceIDProperty = RegisterProperty<string>(c => c.StrAdmittanceID);
+        /// <summary>
+        /// Holds the AdmittanceID for CommunicationContainer
+        /// </summary>
+        public string StrAdmittanceID
+        {
+            set => SetProperty<string>(StrAdmittanceIDProperty, value);
+            get => GetProperty<string>(StrAdmittanceIDProperty);
+        }
+        #endregion
+        #region StrAsOnDate
+        public static readonly PropertyInfo<string> StrAsOnDateProperty = RegisterProperty<string>(c => c.StrAsOnDate);
+        /// <summary>
+        /// Holds the StrAsOnDate for CommunicationContainer
+        /// </summary>
+        public string StrAsOnDate
+        {
+            set => SetProperty<string>(StrAsOnDateProperty, value);
+            get => GetProperty<string>(StrAsOnDateProperty);
+        }
+        #endregion
+        #region StrGradeLevelMarkingPeriodID
+        public static readonly PropertyInfo<string> StrGradeLevelMarkingPeriodIDProperty = RegisterProperty<string>(c => c.StrGradeLevelMarkingPeriodID);
+        /// <summary>
+        /// Holds the StrGradeLevelMarkingPeriodID for CommunicationContainer
+        /// </summary>
+        public string StrGradeLevelMarkingPeriodID
+        {
+            set => SetProperty<string>(StrGradeLevelMarkingPeriodIDProperty, value);
+            get => GetProperty<string>(StrGradeLevelMarkingPeriodIDProperty);
+        }
+        #endregion
+        #region GradebookMode
+        public static readonly PropertyInfo<string> GradebookModeProperty = RegisterProperty<string>(c => c.GradebookMode);
+        /// <summary>
+        /// Holds the GradebookMode for CommunicationContainer
+        /// </summary>
+        public string GradebookMode
+        {
+            set => SetProperty<string>(GradebookModeProperty, value);
+            get => GetProperty<string>(GradebookModeProperty);
+        }
+        #endregion
+        #region StrSchoolID
+        public static readonly PropertyInfo<string> StrSchoolIDProperty = RegisterProperty<string>(new PropertyInfo<string>("StrSchoolID"));
+        /// <summary>
+        /// Holds the StrSchoolID for CommunicationContainer
+        /// </summary>
+        public string StrSchoolID
+        {
+            set => SetProperty<string>(StrSchoolIDProperty, value);
+            get => GetProperty<string>(StrSchoolIDProperty);
+        }
+        #endregion
+        #region RouteID
+        public static readonly PropertyInfo<Guid> RouteIDProperty = RegisterProperty<Guid>(c => c.RouteID);
+        /// <summary>
+        /// Holds the RouteID for CommunicationContainer
+        /// </summary>
+        public Guid RouteID
+        {
+            set => SetProperty<Guid>(RouteIDProperty, value);
+            get => GetProperty<Guid>(RouteIDProperty);
+        }
+        #endregion
+        #region AssignmentCategoryID
+        public static readonly PropertyInfo<Guid> AssignmentCategoryIDProperty = RegisterProperty<Guid>(c => c.AssignmentCategoryID);
+        /// <summary>
+        /// Holds the AssignmentCategoryID for CommunicationContainer
+        /// </summary>
+        public Guid AssignmentCategoryID
+        {
+            set => SetProperty<Guid>(AssignmentCategoryIDProperty, value);
+            get => GetProperty<Guid>(AssignmentCategoryIDProperty);
+        }
+        #endregion
+        #region WeekCodeID
+        public static readonly PropertyInfo<Guid> WeekCodeIDProperty = RegisterProperty<Guid>(c => c.WeekCodeID);
+        /// <summary>
+        /// Holds the WeekCodeID for CommunicationContainer
+        /// </summary>
+        public Guid WeekCodeID
+        {
+            set => SetProperty<Guid>(WeekCodeIDProperty, value);
+            get => GetProperty<Guid>(WeekCodeIDProperty);
+        }
+        #endregion
+        #region ExamTypeID
+        public static readonly PropertyInfo<Guid> ExamTypeIDProperty = RegisterProperty<Guid>(c => c.ExamTypeID);
+        /// <summary>
+        /// Holds the ExamTypeID for CommunicationContainer
+        /// </summary>
+        public Guid ExamTypeID
+        {
+            set => SetProperty<Guid>(ExamTypeIDProperty, value);
+            get => GetProperty<Guid>(ExamTypeIDProperty);
+        }
+        #endregion
+        #region VehicleID
+        public static readonly PropertyInfo<Guid> VehicleIDProperty = RegisterProperty<Guid>(c => c.VehicleID);
+        /// <summary>
+        /// Holds the VehicleID for CommunicationContainer
+        /// </summary>
+        public Guid VehicleID
+        {
+            set => SetProperty<Guid>(VehicleIDProperty, value);
+            get => GetProperty<Guid>(VehicleIDProperty);
+        }
+        #endregion
+        #region EntryDate
+        public static readonly PropertyInfo<Nullable<DateTime>> EntryDateProperty = RegisterProperty<Nullable<DateTime>>(new PropertyInfo<Nullable<DateTime>>("EntryDate"));
+        /// <summary>
+        /// Holds the EntryDate for CommunicationContainer
+        /// </summary>
+        public Nullable<DateTime> EntryDate
+        {
+            set => SetProperty<Nullable<DateTime>>(EntryDateProperty, value);
+            get => GetProperty<Nullable<DateTime>>(EntryDateProperty);
+        }
+        #endregion
+        #region AttendanceCode
+        public static readonly PropertyInfo<string> AttendanceCodeProperty = RegisterProperty<string>(c => c.AttendanceCode);
+        /// <summary>
+        /// Holds the AttendanceCode for CommunicationContainer
+        /// </summary>
+        public string AttendanceCode
+        {
+            set => SetProperty<string>(AttendanceCodeProperty, value);
+            get => GetProperty<string>(AttendanceCodeProperty);
+        }
+        #endregion
+        #region MarkingPeriodID
+        public static readonly PropertyInfo<Guid> MarkingPeriodIDProperty = RegisterProperty<Guid>(new PropertyInfo<Guid>("MarkingPeriodID"));
+        /// <summary>
+        /// Holds the MarkingPeriodID for CommunicationContainer
+        /// </summary>
+        public Guid MarkingPeriodID
+        {
+            set => SetProperty<Guid>(MarkingPeriodIDProperty, value);
+            get => GetProperty<Guid>(MarkingPeriodIDProperty);
+        }
+        #endregion
+        #region ReceiptID
+        public static readonly PropertyInfo<Guid> ReceiptIDProperty = RegisterProperty<Guid>(c => c.ReceiptID);
+        /// <summary>
+        /// Holds the ReceiptID for CommunicationContainer
+        /// </summary>
+        public Guid ReceiptID
+        {
+            set => SetProperty<Guid>(ReceiptIDProperty, value);
+            get => GetProperty<Guid>(ReceiptIDProperty);
+        }
+        #endregion
+        #region IsEmail
+        public static readonly PropertyInfo<bool> IsEmailProperty = RegisterProperty<bool>(c => c.IsEmail);
+        /// <summary>
+        /// Holds the IsEmail for CommunicationContainer
+        /// </summary>
+        public bool IsEmail
+        {
+            set => SetProperty<bool>(IsEmailProperty, value);
+            get => GetProperty<bool>(IsEmailProperty);
+        }
+        #endregion
+        #region IsPeriodicAttendance
+        public static readonly PropertyInfo<bool> IsPeriodicAttendanceProperty = RegisterProperty<bool>(c => c.IsPeriodicAttendance);
+        /// <summary>
+        /// Holds the IsEmail for CommunicationContainer
+        /// </summary>
+        public bool IsPeriodicAttendance
+        {
+            set => SetProperty<bool>(IsPeriodicAttendanceProperty, value);
+            get => GetProperty<bool>(IsPeriodicAttendanceProperty);
+        }
+        #endregion
+        #region SMSTemplateID
+        public static readonly PropertyInfo<string> SMSTemplateIDProperty = RegisterProperty<string>(c => c.SMSTemplateID);
+        /// <summary>
+        /// Holds the SMSTemplateID for CommunicationContainer
+        /// </summary>
+        public string SMSTemplateID
+        {
+            set => SetProperty<string>(SMSTemplateIDProperty, value);
+            get => GetProperty<string>(SMSTemplateIDProperty);
+        }
+        #endregion
+        #region SMSCredits
+        public static readonly PropertyInfo<string> SMSCreditsProperty = RegisterProperty<string>(c => c.SMSCredits);
+        /// <summary>
+        /// Holds the StudentNumber for CommunicationContainer
+        /// </summary>
+        public string SMSCredits
+        {
+            set => SetProperty<string>(SMSCreditsProperty, value);
+            get => GetProperty<string>(SMSCreditsProperty);
+        }
+        #endregion
+        #region templateName
+        public static readonly PropertyInfo<string> templateNameProperty = RegisterProperty<string>(c => c.templateName);
+        /// <summary>
+        /// Holds the StudentNumber for CommunicationContainer
+        /// </summary>
+        public string templateName
+        {
+            set => SetProperty<string>(templateNameProperty, value);
+            get => GetProperty<string>(templateNameProperty);
+        }
+        #endregion
+        #region Link
+        public static readonly PropertyInfo<string> LinkProperty = RegisterProperty<string>(c => c.Link);
+        /// <summary>
+        /// Holds the StudentNumber for CommunicationContainer
+        /// </summary>
+        public string Link
+        {
+            set => SetProperty<string>(LinkProperty, value);
+            get => GetProperty<string>(LinkProperty);
+        }
+        #endregion
+        #region Filespath
+        public List<Files> filespath { get; set; }
+        #endregion
+        #region Protected Members
+        [NonSerialized]
+        protected MailAddress _from;
+        [NonSerialized]
+        protected SmtpClient _Host;
+        [NonSerialized]
+        protected SmtpClient _password;
+        [NonSerialized]
+        protected SmtpClient _client;
+        protected string _to;
+        protected int Port;
+        #endregion
+        #endregion
+
+        protected void DataPortal_Fetch(WhatsAppCommunicationContainer pCriteria)
+        {
+            
+            SingeltonContext<EdmatixContext> instance = SingeltonContext<EdmatixContext>.Instance;
+            EdmatixBaseSessionValues session = ApplicationContext.GlobalContext["EdmatixSession"] as EdmatixBaseSessionValues;
+            EdmatixContext context = instance.DataContext;
+            CallingWhatsAppProcedures(context, pCriteria.CommunicationType, session, pCriteria);
+        }
+        #region private Methods
+        public void CallingWhatsAppProcedures(EdmatixContext context, ECommunicationType ObjCommunicationType, EdmatixBaseSessionValues session, WhatsAppCommunicationContainer objCommunication)
+        {
+            this.SMSTemplateID = objCommunication.SMSTemplateID;
+            // string StrConfigurationMessage = GetSmsConfigurationMessage(session);
+            if (objCommunication.Message.Contains('#'))
+            {
+                IsTemplate = true;
+                Message = objCommunication.Message;
+            }
+            else
+            {
+                Message = objCommunication.Message;
+            }
+
+            string gradeLevelEmpty = "00000000-0000-0000-0000-000000000000";
+            List<WhatsappDetails> whatsappdata = new List<WhatsappDetails>();
+            switch (ObjCommunicationType)
+            {
+                case ECommunicationType.WhatsappTemplate:
+                    #region template
+                    this.WhatsAppTemplates();
+                    #endregion
+                    break;
+
+                case ECommunicationType.Attendance:
+                    #region Attendance
+                    if (objCommunication.IsSchool == true)
+                    {
+                        objCommunication.StrGradeLevelID = gradeLevelEmpty;
+                    }
+
+                    using (DbDataReader reader = GetExcuteProcedure(context, "PROC_WhatsAppMessage_StudentAttendanceDetails", new SqlParameter[]
+                     {
+                            new SqlParameter("@SchoolYearID",session.SchoolYearID),
+                            new SqlParameter("@AttendanceDate",objCommunication.EntryDate.Value),
+                            new SqlParameter("@AttendanceCode",objCommunication.AttendanceCode),
+                            new SqlParameter("@GradeLevelID",objCommunication.StrGradeLevelID),
+                            new SqlParameter("@AdmittanceID",objCommunication.StrAdmittanceID),
+                            new SqlParameter("@GradeSectionID",objCommunication.StrGradeSectionID),
+                            new SqlParameter("@Message",objCommunication.Message),
+                            new SqlParameter("@IsSchool", objCommunication.IsSchool),
+                            new SqlParameter("@SchoolID", session.SchoolID),
+                            new SqlParameter("@IsPeriodicAttendance", objCommunication.IsPeriodicAttendance),
+                     }))
+                    {
+                        while (reader.Read())
+                        {
+                            WhatsappDetails objSmsDetail = new WhatsappDetails
+                            {
+                                MobileNumber = reader["MobileNumber"].ToString(),
+                                Message = reader["Message"].ToString(),
+                                GradelevelName = reader["GradeSection"].ToString(),
+                                AttendanceCode = reader["AttendanceCode"].ToString(),
+                                ParentName = reader["ParentName"].ToString(),
+                                StudentName = reader["StudentName"].ToString()
+                            };
+                            whatsappdata.Add(objSmsDetail);
+
+                        }
+
+                        reader.Close();
+                        if (whatsappdata.Count() > 0)
+                        {
+                            if (session.ORGCode.ToLower() == "spvn")
+                            {
+                                this.SendWhatsappMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                this.SendWhatsappMetaMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+
+                            }
+                        }
+
+                    }
+                    #endregion
+                    break;
+
+                case ECommunicationType.SchoolCampus:
+                    #region School Campus
+                    using (DbDataReader reader = GetExcuteProcedure(context, "PROC_WhatsAppMessage_AllStudentsBySchoolID", new SqlParameter[]
+                    {
+                        new SqlParameter("@SchoolID", objCommunication.SchoolID),
+                        new SqlParameter("@YearID", session.YearID),
+                        //new SqlParameter("@Message", objCommunication.Message),
+                    }))
+                    {
+
+                        while (reader.Read())
+                        {
+                            WhatsappDetails objSmsDetail = new WhatsappDetails
+                            {
+                                MobileNumber = reader["MobileNumber"].ToString(),
+                                ParentName = reader["ParentName"].ToString(),
+                                StudentName = reader["StudentName"].ToString()
+                            };
+                            whatsappdata.Add(objSmsDetail);
+                        }
+                        reader.Close();
+                        if (whatsappdata.Count() > 0)
+                        {
+                            if (session.ORGCode.ToLower() == "spvn")
+                            {
+                                this.SendWhatsappMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                this.SendWhatsappMetaMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                        }
+
+                    }
+                    #endregion
+                    break;
+
+                case ECommunicationType.TransportBulkSMS:
+                    #region Transport Bulk SMS 
+
+                    if (objCommunication.IsSchool == true)
+                    {
+                        objCommunication.StrGradeLevelID = gradeLevelEmpty;
+                    }
+
+                    using (DbDataReader reader = GetExcuteProcedure(context, "PROC_WhatsAppMessage_TransportBulkSMS", new SqlParameter[]
+                    {
+                        new SqlParameter("@RouteID", objCommunication.RouteID),
+                        new SqlParameter("@VehicleID", objCommunication.VehicleID),
+                        new SqlParameter("@GradeLevelID", objCommunication.StrGradeLevelID),
+                        new SqlParameter("@GradeSectionID", objCommunication.StrGradeSectionID),
+                        new SqlParameter("@AdmittanceID", objCommunication.StrAdmittanceID),
+                        new SqlParameter("@Message", objCommunication.Message),
+                        new SqlParameter("@IsSchool", objCommunication.IsSchool),
+                        new SqlParameter("@SchoolID", session.SchoolID),
+                        new SqlParameter("@SchoolYearID", session.SchoolYearID),
+                    }))
+                    {
+                        while (reader.Read())
+                        {
+                            WhatsappDetails objSmsDetail = new WhatsappDetails
+                            {
+                                MobileNumber = reader["MobileNumber"].ToString(),
+                                StudentName = reader["StudentName"].ToString(),
+                                ParentName = reader["ParentName"].ToString(),
+                                GradelevelName = reader["GradeLevel"].ToString(),
+                                GradelevelSectionName = reader["GradeSection"].ToString()
+                            };
+                            whatsappdata.Add(objSmsDetail);
+                        }
+                        //SendBulkMessage(this.Message, reader, session, ECommunicationType.StudentBirthday, StrConfigurationMessage);
+                        reader.Close();
+                        if (whatsappdata.Count() > 0)
+                        {
+                            if (session.ORGCode.ToLower() == "spvn")
+                            {
+                                this.SendWhatsappMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                this.SendWhatsappMetaMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                        }
+
+
+                    }
+                    #endregion
+                    break;
+
+                case ECommunicationType.Fee:
+                    #region Fee
+                    if (objCommunication.IsSchool == true)
+                    {
+                        objCommunication.StrGradeLevelID = gradeLevelEmpty;
+                    }
+
+                    using (DbDataReader reader = GetExcuteProcedure(context, "PROC_WhatsAppMessage_FeeStatusBulkSMS", new SqlParameter[]
+                    {
+                        new SqlParameter("@SchoolID", session.SchoolID),
+                        new SqlParameter("@SchoolYearID", session.SchoolYearID),
+                        new SqlParameter("@GradeLevelID", objCommunication.StrGradeLevelID),
+                        new SqlParameter("@GradeSectionID", objCommunication.StrGradeSectionID),
+                        new SqlParameter("@AdmittanceID", objCommunication.StrAdmittanceID),
+                        new SqlParameter("@Message", objCommunication.Message),
+                        new SqlParameter("@IsSchool", objCommunication.IsSchool),
+                        new SqlParameter("@AsOnDate", objCommunication.StrAsOnDate),
+                    }))
+                    {
+                        List<SmsDetail> objSmsDetailList = new List<SmsDetail>();
+                        while (reader.Read())
+                        {
+                            WhatsappDetails objSmsDetail = new WhatsappDetails
+                            {
+                                MobileNumber = reader["MobileNumber"].ToString(),
+                                StudentName = reader["StudentName"].ToString(),
+                                ParentName = reader["ParentName"].ToString(),
+                                GradelevelName = reader["GradeLevel"].ToString(),
+                                FeeDueAmount = reader["DueAmount"].ToString(),
+                                StudentId = reader["StudentID"].ToString()
+                                // PocketMoney = string.Empty
+                            };
+                            // whatsappdata.Clear();
+                            whatsappdata.Add(objSmsDetail);
+                        }
+
+                        reader.Close();
+                        if (whatsappdata.Count() > 0)
+                        {
+                            //fee
+                            if (session.ORGCode.ToLower() == "spvn")
+                            {
+                                this.SendWhatsappMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                this.SendWhatsappMetaMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                        }
+
+                    }
+                    #endregion
+                    break;
+                case ECommunicationType.FrontOffice:
+                    #region Front Office
+                    if (objCommunication.IsSchool == true)
+                    {
+                        objCommunication.StrGradeLevelID = gradeLevelEmpty;
+                    }
+
+                    using (DbDataReader reader = GetExcuteProcedure(context, "PROC_WhatsAppMessage_FrontOfficeBulkSMS", new SqlParameter[]
+                    {
+                        new SqlParameter("@SchoolID", session.SchoolID),
+                        new SqlParameter("@SchoolYearID", session.SchoolYearID),
+                        new SqlParameter("@GradeLevelID", objCommunication.StrGradeLevelID),
+                        new SqlParameter("@EnquiryDate", objCommunication.EntryDate),
+                        new SqlParameter("@StatusID", objCommunication.StatusID),
+                        new SqlParameter("@FollowupStatusID", objCommunication.FollowupStatusID),
+                        new SqlParameter("@Message", objCommunication.Message),
+                        new SqlParameter("@IsSchool", objCommunication.IsSchool),
+                    }))
+                    {
+                        List<SmsDetail> objSmsDetailList = new List<SmsDetail>();
+                        while (reader.Read())
+                        {
+                            WhatsappDetails objSmsDetail = new WhatsappDetails
+                            {
+                                MobileNumber = reader["MobileNumber"].ToString(),
+                                StudentName = reader["StudentName"].ToString(),
+                                ParentName = reader["ParentName"].ToString(),
+                                GradelevelName = reader["GradeLevel"].ToString(),
+                            };
+                            whatsappdata.Add(objSmsDetail);
+                        }
+
+                        reader.Close();
+                        if (whatsappdata.Count() > 0)
+                        {
+                            if (session.ORGCode.ToLower() == "spvn")
+                            {
+                                this.SendWhatsappMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                this.SendWhatsappMetaMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                        }
+
+                    }
+                    #endregion
+                    break;
+
+                case ECommunicationType.TeacherActivity:
+                    #region Teacher Activity
+                    using (DbDataReader reader = GetExcuteProcedure(context, "PROC_WhatsAppMessage_TeacherActivityBulkSMS", new SqlParameter[]
+                    {
+                        new SqlParameter("@GradeLevelID", objCommunication.StrGradeLevelID),
+                        new SqlParameter("@GradeSectionID", objCommunication.StrGradeSectionID),
+                        new SqlParameter("@AdmittanceID", objCommunication.AdmittanceID),
+                        new SqlParameter("@GradeLevelMarkingPeriodID", objCommunication.StrGradeLevelMarkingPeriodID),
+                        new SqlParameter("@GradeBookMode", objCommunication.GradebookMode),
+                        new SqlParameter("@Message", objCommunication.Message),
+                        new SqlParameter("@SchoolID", session.SchoolID),
+                        new SqlParameter("@SchoolYearID", session.SchoolYearID),
+                    }))
+                    {
+
+                        while (reader.Read())
+                        {
+                            WhatsappDetails objSmsDetail = new WhatsappDetails
+                            {
+                                MobileNumber = reader["MobileNumber"].ToString(),
+                                StudentName = reader["StudentName"].ToString(),
+                                ParentName = reader["ParentName"].ToString(),
+                                Marks = reader["OverAllMarks"].ToString(),
+                                TotalMarks = reader["OverAllMarks"].ToString()
+                            };
+                            whatsappdata.Add(objSmsDetail);
+                        }
+                        reader.Close();
+                        if (whatsappdata.Count() > 0)
+                        {
+                            if (session.ORGCode.ToLower() == "spvn")
+                            {
+                                this.SendWhatsappMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                this.SendWhatsappMetaMessaging(whatsappdata, objCommunication).GetAwaiter().GetResult();
+                            }
+                        }
+                    }
+                    #endregion
+                    break;
+                default:
+                    break;
+            }
+
+
+        }
+        private void WhatsAppTemplates()
+        {
+
+            EdmatixContext dbcontext = new EdmatixContext();
+            EdmatixBaseSessionValues session = ApplicationContext.GlobalContext["EdmatixSession"] as EdmatixBaseSessionValues;
+            var vendorId = string.Empty;
+            string apiUrl = string.Empty;
+            string bearerToken = string.Empty;
+
+
+            var config_ = dbcontext.SmsglobalSetting.Where(c => c.IswhatsApp != false).FirstOrDefault();
+            if (config_ != null)
+            {
+                if (session.ORGCode.ToLower() == "spvn")
+                {
+
+                    var url = config_.SenderId;
+                    var Vendor_Id = config_.ClientId;
+                    bearerToken = config_.Url;
+                    apiUrl = url + Vendor_Id + "/contact/get-templates";
+                }
+                
+            }
+            var Meta_ = dbcontext.SmsWhatsApps.FirstOrDefault();
+            if (Meta_ != null)
+            {
+                bearerToken = Meta_.AccessToken;
+                var Meta_BusinessId = Meta_.WhatsAppBussinessId;
+                apiUrl = Meta_.Url + Meta_.WhatsAppBussinessId + "/message_templates";
+            }
+
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+            HttpResponseMessage response = client.GetAsync(apiUrl).GetAwaiter().GetResult();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            try
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (session.ORGCode.ToLower() == "spvn")
+                    {
+                        ApiResponse GetPayload = JsonConvert.DeserializeObject<ApiResponse>(responseBody);
+                        string serializedJson = JsonConvert.SerializeObject(GetPayload, Formatting.Indented);
+                        JObject jsonObject = JObject.Parse(serializedJson);
+                        JArray API_Response = (JArray)jsonObject["Data"]?["Templates"];
+                        LoadProperty<object>(GetTemplateDetailsProperty, API_Response);
+                    }
+                    else
+                    {
+                        var GetPayload = JsonSerializer.Deserialize<WhatsAppMeta_ApiResponse>(responseBody);
+                        foreach (var item in GetPayload.Data)
+                        {
+                            string serializedJson = JsonConvert.SerializeObject(GetPayload, Formatting.Indented);
+                            JObject jsonObject = JObject.Parse(serializedJson);
+                            JArray API_Response = (JArray)jsonObject["Data"];
+                            LoadProperty<object>(GetTemplateDetailsProperty, API_Response.Where(c => c["Name"]?.ToString() != "hello_world"));
+                        }
+
+                    }
+
+                }
+                else
+                {
+                    string errorBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+        }
+        private async Task<string> SendWhatsappMessaging(List<WhatsappDetails> whatsapplist, WhatsAppCommunicationContainer criteria)
+        {
+            EdmatixContext dbcontext = new EdmatixContext();
+            SingeltonContext<EdmatixContext> instance = SingeltonContext<EdmatixContext>.Instance;
+            EdmatixBaseSessionValues session = ApplicationContext.GlobalContext["EdmatixSession"] as EdmatixBaseSessionValues;
+            var vendorId = string.Empty;
+            string apiUrl = string.Empty;
+            string bearerToken = string.Empty;
+            DateTime today = DateTime.Today;
+            var TodayDate = today.ToString("yyyy-MM-dd");
+
+            var config_ = dbcontext.SmsglobalSetting.Where(c => c.IswhatsApp != false).FirstOrDefault();
+            if (config_ != null)
+            {
+                var url = config_.SenderId;
+                var Vendor_Id = config_.ClientId;
+                bearerToken = config_.Url;
+                apiUrl = url + Vendor_Id + "/contact/send-template-message";
+            }
+
+
+            string responseContent = string.Empty;
+            string actualpayload;
+            List<string> mobilelst = new List<string>();
+            HttpClient tokenclient = new HttpClient();
+            ECommunicationType eCommunicationType;
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+
+                var payloadList = new List<Dictionary<string, object>>();
+
+                foreach (var whatsappMessage in whatsapplist)
+                {
+                    mobilelst.Add(whatsappMessage.MobileNumber);
+
+                    var payload = new Dictionary<string, object>
+                    {
+                        ["phone_number"] = whatsappMessage.MobileNumber,
+                        ["template_language"] = "en_US",
+                        ["template_name"] = criteria.templateName
+                    };
+
+                    switch (criteria.CommunicationType)
+                    {
+                        case ECommunicationType.Fee:
+                            payload["field_1"] = whatsappMessage.ParentName;
+                            payload["field_2"] = whatsappMessage.StudentName;
+                            payload["field_3"] = whatsappMessage.GradelevelName;
+                            payload["field_4"] = whatsappMessage.FeeDueAmount;
+                            if (session.ORGCode.ToLower() == "spvn" || session.ORGCode.ToLower() == "support")
+                            {
+                                // GenerateUrl(Guid.NewGuid(), GetUniqueKey(20), session, whatsappMessage.FeeDueAmount, whatsappMessage.StudentName, whatsappMessage.GradelevelName, whatsappMessage.StudentId, whatsappMessage.MobileNumber);
+                            }
+                            break;
+                        case ECommunicationType.TransportBulkSMS:
+                            payload["field_1"] = whatsappMessage.ParentName;
+                            payload["field_2"] = whatsappMessage.StudentName;
+                            break;
+                        case ECommunicationType.SchoolCampus:
+                            payload["field_1"] = whatsappMessage.ParentName;
+                            payload["field_2"] = whatsappMessage.StudentName;
+                            break;
+                        case ECommunicationType.Attendance:
+                            payload["field_1"] = whatsappMessage.ParentName;
+                            payload["field_2"] = whatsappMessage.StudentName;
+                            payload["field_3"] = whatsappMessage.GradelevelName;
+                            payload["field_4"] = TodayDate;
+                            break;
+                        case ECommunicationType.TeacherActivity:
+                            payload["field_1"] = whatsappMessage.ParentName;
+                            payload["field_2"] = whatsappMessage.StudentName;
+                            payload["field_3"] = whatsappMessage.Marks;
+                            payload["field_4"] = whatsappMessage.TotalMarks;
+                            break;
+
+                        case ECommunicationType.FrontOffice:
+                            payload["field_1"] = whatsappMessage.ParentName;
+                            payload["field_2"] = whatsappMessage.StudentName;
+                            payload["field_3"] = whatsappMessage.GradelevelName;
+                            break;
+
+                    }
+
+                    payloadList.Add(payload);
+                }
+
+
+
+
+                foreach (var payload in payloadList)
+                {
+                    string jsonPayload = JsonConvert.SerializeObject(payload);
+                    actualpayload = jsonPayload;
+                    var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = client.PostAsync(apiUrl, content).GetAwaiter().GetResult();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        responseContent = "Success";
+                    }
+                    else
+                    {
+                        responseContent = "Failed";
+                    }
+                    whatsappLog(dbcontext, mobilelst, actualpayload, responseContent, session);
+                }
+
+
+            }
+
+            return responseContent;
+
+        }
+        private async Task<string> SendWhatsappMetaMessaging(List<WhatsappDetails> whatsapplist, WhatsAppCommunicationContainer criteria)
+        {
+            string responseContent = string.Empty;
+            string actualpayload;
+            List<string> mobilelst = new List<string>();
+            string bearerToken = string.Empty;
+            string apiUrl = string.Empty;
+          
+
+            EdmatixContext dbcontext = new EdmatixContext();
+            SingeltonContext<EdmatixContext> instance = SingeltonContext<EdmatixContext>.Instance;
+            EdmatixBaseSessionValues session = ApplicationContext.GlobalContext["EdmatixSession"] as EdmatixBaseSessionValues;
+
+
+            var Meta_ = dbcontext.SmsWhatsApps.FirstOrDefault();
+            if (Meta_ != null)
+            {
+                Meta_AccessToken = Meta_.AccessToken;
+                Meta_PhoneNumber = Meta_.WhatsMobileNumber;
+                apiUrl = Meta_.Url + Meta_.WhatsMobileNumber + "/messages";
+                Meta_Api = Meta_.Url;
+            }
+
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    var payloadList = new List<WhatsAppPayload>();
+                    bool MetaHeader_Image = false;
+          
+                    foreach (var whatsappMessage in whatsapplist)
+                    {
+                        mobilelst.Add(whatsappMessage.MobileNumber);
+                        var parameters = new List<Parameter>();
+
+                        List<string> MetaTemplateParms = new();
+                        if (criteria.GetTemplateDetails != null)
+                        {
+
+                            var Template_data = JsonConvert.DeserializeObject<GetTemplateCriteria>(criteria.GetTemplateDetails.ToString());
+                            foreach (var template in Template_data.GetTemplateDetails)
+                            {
+                                if (template.Name == criteria.templateName)
+                                {
+                                    foreach (var comp in template.Components)
+                                    {
+                                        if(comp.Format == "DOCUMENT")
+                                        {
+                                            Meta_DocumentID = await this.UploadFileAsync(criteria.filespath[0].Attachment, criteria.filespath[0].FileName);
+                                            document = true;
+                                        }
+                                        if (comp.Example?.HeaderHandle != null)
+                                        {
+                                            foreach (var image in comp.Example.HeaderHandle)
+                                            {
+                                                MetaHeader_Image = true;
+                                                Meta_Image = image;
+                                                Meta_ImageID = this.MetaImageGenerator(Meta_Image).GetAwaiter().GetResult();
+                                                break;
+                                            }
+                                        }
+
+
+                                        if (comp.Example?.BodyText != null)
+                                        {
+                                            foreach (var bodytext in comp.Example.BodyText)
+                                            {
+                                                foreach (var TemplateActualParms in bodytext)
+                                                {
+                                                    MetaTemplateParms.Add(TemplateActualParms);
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+                                }
+                            }
+
+                            foreach (var actualparms in MetaTemplateParms)
+                            {
+                                switch (actualparms.Trim())
+                                {
+                                    case "#ParentName":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.ParentName });
+                                        break;
+
+                                    case "#StudentName":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.StudentName });
+                                        break;
+
+                                    case "#GradeSection":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.GradelevelSectionName});
+                                        break;
+
+                                    case "#AttendanceDate":
+                                        parameters.Add(new Parameter { type = "text", text = DateTime.Now.ToString("yyyy-MM-dd HH:mm") });
+                                        break;
+
+                                    case "#AttendanceCode":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.AttendanceCode });
+                                        break;
+
+                                    case "#GradeLevel":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.GradelevelName });
+                                        break;
+
+                                    case "#Marks":
+                                        if (whatsappMessage.Marks != string.Empty)
+                                        {
+                                            parameters.Add(new Parameter { type = "text", text = whatsappMessage.Marks.ToString() });
+                                        }
+                                        break;
+
+                                    case "#TotalMarks":
+                                        if (whatsappMessage.Marks != string.Empty)
+                                        {
+                                            parameters.Add(new Parameter { type = "text", text = whatsappMessage.TotalMarks.ToString() });
+                                        }
+                                        break;
+
+                                    case "#FeeDueAmount":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.FeeDueAmount.ToString() });
+                                        break;
+
+                                    case "#PocketMoney":
+                                        parameters.Add(new Parameter { type = "text", text = whatsappMessage.PocketMoney.ToString() });
+                                        break;
+                                    case "#Link":
+                                        parameters.Add(new Parameter { type = "text", text = criteria.Link });
+                                        break;
+                                }
+                            }
+
+                        }
+
+
+                        var payload = new WhatsAppPayload
+                        {
+                            messaging_product = "whatsapp",
+                            to = $"+91{whatsappMessage.MobileNumber}",
+                            type = "template",
+                            template = new Template
+                            {
+                                name = criteria.templateName,
+                                language = new Language { code = "en" },
+                                components = new List<Component>()
+                            }
+                        };
+                        if (document == true)
+                        {
+                            payload.template.components.Add(new Component
+                            {
+                                type = "header",
+                                parameters = new List<Parameter>
+                                {
+                                    new Parameter
+                                    {
+                                        type ="document",
+                                        document=new Document{ID = Meta_DocumentID,filename = criteria.filespath[0].FileName}
+                                    }
+                                }
+                            });
+                        }
+                        else
+                        {
+                            if (MetaHeader_Image && !string.IsNullOrEmpty(Meta_ImageID))
+                            {
+                                payload.template.components.Add(new Component
+                                {
+
+                                    type = "header",
+                                    parameters = new List<Parameter>
+                                    {
+                                        new Parameter
+                                        {
+                                            type = "image",
+                                            image = new Image { ID = Meta_ImageID }
+                                        },
+                                    }
+                                });
+                            }
+                        }
+                        payload.template.components.Add(new Component
+                        {
+                            type = "body",
+                            parameters = parameters
+                        });
+
+                        payloadList.Add(payload);
+                    }
+
+
+
+                    foreach (var payload in payloadList)
+                        {
+                        string jsonPayload = JsonConvert.SerializeObject(payload, Formatting.Indented,
+                                    new JsonSerializerSettings
+                                    {
+                                        NullValueHandling = NullValueHandling.Ignore
+                                    });
+
+                        actualpayload = jsonPayload;
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Meta_AccessToken);
+                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                        HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            responseContent = "Success";
+                        }
+                        else
+                        {
+                            responseContent = "Failed";
+                        }
+                        whatsappLog(dbcontext, mobilelst, actualpayload, responseContent, session);
+                     }
+                    
+                }
+
+
+
+               
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return responseContent;
+        }
+        public  async Task<string> UploadFileAsync(byte[] fileBytes, string fileName)
+        {
+            if (fileBytes == null || fileBytes.Length == 0)
+                throw new ArgumentException("File bytes cannot be empty");
+
+            string mimeType = GetMimeType(fileName);
+
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent("whatsapp"), "messaging_product");
+
+            var fileContent = new ByteArrayContent(fileBytes);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
+            form.Add(fileContent, "file", fileName + " ");
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", Meta_AccessToken);
+
+            var uploadUrl = $"{Meta_Api}{Meta_PhoneNumber}/media";
+            var response = await httpClient.PostAsync(uploadUrl, form);
+            string responseText = await response.Content.ReadAsStringAsync();
+          
+            if (!response.IsSuccessStatusCode)
+                throw new Exception("Upload failed: " + responseText);
+
+            var json = JsonDocument.Parse(responseText);
+            return json.RootElement.GetProperty("id").GetString();
+        }
+
+
+        private static string GetMimeType(string filePath)
+        {
+            string ext = Path.GetExtension(filePath).ToLower();
+            return ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                _ => "application/octet-stream",
+
+            };
+        }
+        public async Task<string> MetaImageGenerator(string url)
+        {
+            HttpClient _httpClient = new HttpClient();
+
+            _httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", Meta_AccessToken);
+
+            var imageBytes = await _httpClient.GetByteArrayAsync(url);
+            using (var form = new MultipartFormDataContent())
+            {
+                // Add required field: messaging_product
+                form.Add(new StringContent("whatsapp"), "messaging_product");
+
+                // Attach image bytes
+                var fileContent = new ByteArrayContent(imageBytes);
+                if (document)
+                {
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf"); // change if jpg
+                }
+                else
+                {
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+                }
+                    form.Add(fileContent, "file", "uploaded.png");
+
+                // Optional: explicitly tell type
+                form.Add(new StringContent("image/png"), "type");
+
+                // Step 2: Upload to WhatsApp Media API
+                var response = await _httpClient.PostAsync(
+                    $"https://graph.facebook.com/v18.0/{Meta_PhoneNumber}/media",
+                    form
+                );
+
+                string result = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Upload Response: " + result);
+
+                // Parse response JSON properly
+                if (response.IsSuccessStatusCode)
+                {
+                    // Expected response: {"id":"<MEDIA_ID>"}
+                    var json = System.Text.Json.JsonDocument.Parse(result);
+                    return json.RootElement.GetProperty("id").GetString();
+                }
+
+                throw new Exception("Failed to upload image: " + result);
+            }
+
+        }
+        public void whatsappLog(EdmatixContext context, List<string> numberlist, string smgbody, string jobnumber, EdmatixBaseSessionValues session)
+        {
+            foreach (var numbers in numberlist)
+            {
+                Smslog log = new Smslog
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedBy = session.LoginName,
+                    CreatedOn = DateTime.Now,
+                    DeleteStatus = false,
+                    LastUpdatedBy = session.LoginName,
+                    LastUpdatedOn = DateTime.Now,
+                    Message = smgbody,
+                    RecipientNumber = numbers,
+                    SentBy = session.LoginName,
+                    JobNumber = jobnumber,
+                    SentDate = DateTime.Now,
+                    IsWhatsapp = true
+                };
+                context.Smslog.Add(log);
+            }
+            context.SaveChanges();
+        }
+        private DbDataReader GetExcuteProcedure(EdmatixContext context, string ProcedureName, SqlParameter[] ParameterList)
+        {
+            using (DbCommand cmd = context.Database.GetDbConnection().CreateCommand())
+            {
+                cmd.CommandText = ProcedureName;
+                cmd.CommandTimeout = 120;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddRange(ParameterList);
+                if (cmd.Connection.State != ConnectionState.Open)
+                {
+                    cmd.Connection.Open();
+                }
+                return cmd.ExecuteReader();
+            }
+        }
+        public static string GetUniqueKey(int length)
+        {
+            string guidResult = string.Empty;
+            while (guidResult.Length < length)
+            {        // Get the GUID.        
+                guidResult += Guid.NewGuid().ToString().GetHashCode().ToString("x");
+            }
+            // Make sure length is valid.   
+            if (length <= 0 || length > guidResult.Length)
+            {
+                throw new ArgumentException("Length must be between 1 and " + guidResult.Length);
+            }
+            // Return the first length bytes.    
+            return guidResult.Substring(0, length);
+        }
+        #endregion
+        #region WhatsApp Payment API
+        public List<ProductInfo> ProductLists { set; get; }
+        public string GenerateUrl(Guid transactionID, string uniqueNumber, EdmatixBaseSessionValues session, string Amount, string StudentName, string GradelevelName, string StudentId, string MobileNumber)
+        {
+            EdmatixContext context = new();
+            TutnPaymentGateway payment = context.TutnPaymentGateway.Where(cond => cond.SchoolId == session.SchoolID).FirstOrDefault();
+            string strClientCode, strClientCodeEncoded, signature = ""; ;
+            byte[] b;
+
+            //Guid transactionID = Guid.NewGuid();
+            var url = payment.Url;
+            var login = payment.LoginId.ToString();
+            var pass = payment.Password;
+            var ttype = payment.TransactionType;
+            var prodid = payment.ProductId;
+            string aamount = Convert.ToDecimal(Amount).ToString();
+            var amt = aamount;
+            var txncurr = "INR";
+            var txnscamt = Amount;
+            var clientcode = uniqueNumber;
+            var txnid = session.DbName;
+            //payment.MerchantTransactionID = txnid;
+            var date = getCurrentDateAndTime();
+            var custacc = payment.CustomerAccountNumber;
+            var mdd = payment.ApplicationIdentifier;
+            var ru = "https://erpdemo.edmatix.com/WhatsAppAtomPayment";
+
+            // sessionValues.TransactionID = transactionID;
+
+            //https://paynetzuat.atomtech.in/paynetz/epi/fts?login=<login id>&pass=<password>&ttype=NBFundTransfer&prodid=Multi&amt=1000&txncurr=INR&txnscamt=0&clientcode=007&t xnid=<transaction id> &date=<transaction date> &custacc=1234567890&udf1 =< Customer Name > &udf2 =< Customer Email ID> &udf3 =< Customer Mobile No> &udf4 =< Billing Address > &ru =<return url >&signature = 704e6a78ca61c89127ca5430ddf59a329dacb142ae2790e19d676f5ca8ca80b9c534552e877bfb0ce1c2dddf252ae3d7580d329556213811f828711e9f4ea371& mprod =< products >< product >< id > 1 </ id >< name > ONE </ name >< amount > 250.00 </ amount ></ product >< product >< id > 2 </ id >< name > TWO </ name >< amount > 250.00 </ amount ></ product >< product >< id > 3 </ id >< name > THREE </ name >< amount > 500.00 </ amount ></ product ></ products >< param1 > Policy No </ param1 >< param2 > Policy Holder Name</ param2 >< param3 > Premium Due Date</ param3 >< param4 > Optional </ param4 >< param5 > Optional </ param5 ></ product ></ products >
+
+            string strURL = url + "login=xxx&pass=yyy&ttype=jj&prodid=pie&txnid=tid&amt=kk&txncurr=txncrr&txnscamt=service&clientcode=cde&date=strdte&custacc=cuac&ru=retun&udf1=p1&udf2=p2&udf4=p4&udf9=p9&udf3=p3&udf5=p5&signature=[signature]&mprod=productList";
+            ProductLists = new List<ProductInfo>();
+            b = Encoding.UTF8.GetBytes(clientcode);
+            strClientCode = Convert.ToBase64String(b);
+            strClientCodeEncoded = HttpUtility.UrlEncode(strClientCode);
+
+
+            strURL = strURL.Replace("xxx", login);
+            strURL = strURL.Replace("yyy", pass);
+            strURL = strURL.Replace("jj", ttype);
+            strURL = strURL.Replace("pie", prodid);
+            strURL = strURL.Replace("kk", amt);
+            strURL = strURL.Replace("txncrr", txncurr);
+            strURL = strURL.Replace("service", txnscamt);
+
+            strURL = strURL.Replace("cde", strClientCodeEncoded);
+            strURL = strURL.Replace("tid", txnid);
+            strURL = strURL.Replace("strdte", date);
+            strURL = strURL.Replace("cuac", custacc);
+            strURL = strURL.Replace("retun", ru);
+
+
+
+            if (!string.IsNullOrEmpty(session.DbName))
+                strURL = strURL.Replace("p1", session.DbName);
+            if (!string.IsNullOrEmpty(StudentName))
+                strURL = strURL.Replace("p2", "1234");
+            if (!string.IsNullOrEmpty(StudentName))
+                strURL = strURL.Replace("p3", StudentName);
+            if (!string.IsNullOrEmpty(GradelevelName))
+                strURL = strURL.Replace("p4", GradelevelName + "-" + GradelevelName);
+            if (!string.IsNullOrEmpty(transactionID.ToString()))
+                strURL = strURL.Replace("p9", transactionID.ToString());
+            if (!string.IsNullOrEmpty(transactionID.ToString()))
+                strURL = strURL.Replace("p5", MobileNumber);
+            StringBuilder sb = new StringBuilder();
+            #region payload convertion code.
+
+            var accountSetting = (from rs in context.SchlAccountSetting
+                                  where rs.SchoolId == session.SchoolID && rs.DeleteStatus == false && rs.YearId == session.YearID
+                                  select rs).FirstOrDefault();
+            IQueryable<TutnDueDateFine> fineSetting = (from rs in context.TutnDueDateFine
+                                                       where rs.SchoolId == session.SchoolID && rs.YearId == session.SchoolYearID && rs.DeleteStatus == false && rs.IsActive == true
+                                                       select rs);
+            List<Guid?> invIds = new List<Guid?>();
+            List<Guid> InvoiceDetailList = new();
+            List<InvioceFineDetails> invoiceList = new List<InvioceFineDetails>();
+            #region Added code for WhatsappPaymentApi Integration.
+            var studentdetails = context.StdtPersonalInfo.Where(c => c.Id == Guid.Parse(StudentId)).FirstOrDefault();
+            if (studentdetails != null)
+            {
+                var tutnInvoice = context.TutnInvoice.Where(c => c.StudentId == studentdetails.Id && c.YearId == session.SchoolYearID).ToList();
+                foreach (var InvIds in tutnInvoice)
+                {
+                    InvoiceDetailList.Add(InvIds.Id);
+                }
+            }
+            #endregion
+
+
+            foreach (var item in InvoiceDetailList)
+            {
+                Nullable<DateTime> LastPaymentDate = null;
+                var invoiceID = new Guid(item.ToString());
+                var invoiceEntity = context.TutnInvoice.Where(cond => cond.Id == invoiceID).FirstOrDefault();
+                var tutnReceiptDetail = context.TutnReceiptDetail.Include("Receipt").Where(cond => cond.InvoiceId == invoiceID && cond.Receipt.YearId == session.SchoolYearID && cond.Receipt.Status == null && cond.Receipt.StudentId == studentdetails.Id && !(cond.DeleteStatus ?? false));
+                var latestReceipt = tutnReceiptDetail.OrderByDescending(d => d.Receipt.ReceiptDate).FirstOrDefault();
+                if (latestReceipt != null)
+                {
+                    if (latestReceipt.Receipt != null)
+                        LastPaymentDate = latestReceipt.Receipt.ReceiptDate;
+                }
+                decimal fineAmount = GetFineAmount(context, invoiceEntity, accountSetting, fineSetting, session, LastPaymentDate);
+                if (!(invoiceEntity.IsExcludeFine ?? false))
+                    invoiceList.Add(new InvioceFineDetails() { Amount = fineAmount, Id = invoiceID });
+                invIds.Add(new Guid(item.ToString()));
+            }
+
+
+            IQueryable<TutnInvoiceDetail> query = context.TutnInvoiceDetail.Include("FeeHead").Where(c => c.DeleteStatus == false);
+            query = query.WhereIn(c => c.InvoiceId, invIds);
+            var IsTaxable = query.Where(cond => cond.FeeHead.IsTaxable == true).GroupBy(c => c.FeeHead.AccountName).Select(c => new ProductInfo { ProductName = c.Select(y => y.FeeHead.AccountName).FirstOrDefault(), Amount = (c.Sum(y => y.Amount) - (c.Sum(y => y.AmountPaid) + c.Sum(y => y.FeeItemConcession) + c.Sum(y => y.InvoiceConcession))) }).ToList();
+            var Regular = query.Where(cond => cond.FeeHead.IsTaxable == false).GroupBy(c => c.FeeHead.AccountName).Select(c => new ProductInfo { ProductName = c.Select(y => y.FeeHead.AccountName).FirstOrDefault(), Amount = (c.Sum(y => y.Amount) - (c.Sum(y => y.AmountPaid) + c.Sum(y => y.FeeItemConcession) + c.Sum(y => y.InvoiceConcession))) }).ToList(); ;
+            int sn = 0;
+            sb.Append("<products>");
+            if (Regular.Count() < 0)
+            {
+                if (invoiceList.Count() > 0)
+                {
+                    var product = context.TutnFeeHead.Where(cond => cond.IsTaxable == false && cond.SchoolId == session.SchoolID && cond.DeleteStatus == false && cond.YearId == session.YearID).FirstOrDefault();
+                    if (product != null)
+                    {
+                        sb.Append("<product>");
+                        sb.Append("<id>");
+                        sn = sn + 1;
+                        sb.Append(sn);
+                        sb.Append("</id>");
+
+                        sb.Append("<name>");
+                        sb.Append(product.AccountName.ToString());
+                        sb.Append("</name>");
+
+                        sb.Append("<amount>");
+                        sb.Append(invoiceList.Sum(cond => cond.Amount).ToString());
+                        sb.Append("</amount>");
+                        sb.Append("</product>");
+                        ProductLists.Add(new ProductInfo() { Amount = invoiceList.Sum(cond => cond.Amount), ProductName = product.AccountName });
+                    }
+                }
+            }
+
+
+            foreach (var item in IsTaxable)
+            {
+
+                sb.Append("<product>");
+
+                sb.Append("<id>");
+                sn = sn + 1;
+                sb.Append(sn);
+                sb.Append("</id>");
+
+                sb.Append("<name>");
+                sb.Append(item.ProductName.ToString());
+                sb.Append("</name>");
+
+                sb.Append("<amount>");
+
+                sb.Append(item.Amount.ToString());
+                sb.Append("</amount>");
+
+                sb.Append("</product>");
+                ProductLists.Add(new ProductInfo() { Amount = item.Amount, ProductName = item.ProductName });
+
+            }
+            foreach (var item in Regular)
+            {
+
+                sb.Append("<product>");
+                sb.Append("<id>");
+                sn = sn + 1;
+                sb.Append(sn);
+                sb.Append("</id>");
+
+                sb.Append("<name>");
+                sb.Append(item.ProductName.ToString());
+                sb.Append("</name>");
+
+                sb.Append("<amount>");
+                if (invoiceList.Count() > 0)
+                {
+                    item.Amount = item.Amount + invoiceList.Sum(cond => cond.Amount);
+                }
+                sb.Append(item.Amount.ToString());
+                sb.Append("</amount>");
+
+                sb.Append("</product>");
+                ProductLists.Add(new ProductInfo() { Amount = item.Amount, ProductName = item.ProductName });
+
+            }
+            sb.Append("</products>");
+            string reqHashKey = payment.EncryptedString;
+
+            string strsignature = login + pass + ttype + prodid + txnid + amt + txncurr;
+            byte[] bytes = Encoding.UTF8.GetBytes(reqHashKey);
+            byte[] bt = new System.Security.Cryptography.HMACSHA512(bytes).ComputeHash(Encoding.UTF8.GetBytes(strsignature));
+            // byte[] b = new HMACSHA512(bytes).ComputeHash(Encoding.UTF8.GetBytes(prodid));
+            signature = byteToHexString(bt).ToLower();
+            strURL = strURL.Replace("[signature]", signature);
+            strURL = strURL.Replace("productList", sb.ToString());
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            #endregion
+            LoadPaymentSessionValue(payment, session, transactionID, clientcode, strURL, Guid.Parse(StudentId), Amount);
+            WhatsappPaymentAPI(strURL, aamount, clientcode, MobileNumber);
+            return strURL;
+
+
+        }
+
+        public void WhatsappPaymentAPI(string paymentUrl, string amount, string uniqueNumber, string MobileNumber)
+        {
+            EdmatixContext dbcontext = new EdmatixContext();
+            SingeltonContext<EdmatixContext> instance = SingeltonContext<EdmatixContext>.Instance;
+            EdmatixBaseSessionValues session = ApplicationContext.GlobalContext["EdmatixSession"] as EdmatixBaseSessionValues;
+            string finalUrl = string.Empty;
+            string postUrl = "https://payment.atomtech.in/paynetz/epi/fts";
+            string Payment_API = "https://www.icognito.ai/admin/public/index.php/api/3106f632-2a95-4f4a-b680-443f158e124d/contact/send-payment-request?token=9UAZq9kYxzJlyA1wRiM9NyGvaatvD51EFLH1mjJ5oK6CCJTXC7XQ7bDYZhEn1gPK";
+            try
+            {
+                var uri = new Uri(paymentUrl);
+                var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var parameters = new Dictionary<string, string>();
+                foreach (string key in queryParams)
+                {
+                    if (key != null)
+                        parameters[key] = queryParams[key];
+                }
+                var handler = new HttpClientHandler
+                {
+                    AllowAutoRedirect = false
+                };
+                using (var client = new HttpClient(handler))
+                {
+                    var content = new FormUrlEncodedContent(parameters);
+                    var response = client.PostAsync(postUrl, content).GetAwaiter().GetResult();
+
+                    if ((int)response.StatusCode == 302 || response.StatusCode == System.Net.HttpStatusCode.Found)
+                    {
+                        if (response.Headers.Location != null)
+                        {
+                            finalUrl = response.Headers.Location.ToString();
+                        }
+                    }
+                    else
+                    {
+
+                        var html = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        Console.WriteLine("Unexpected response: " + html);
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(finalUrl))
+                {
+                    var paymentRequest = new ATOM_WhatsAPPPaymentRequest
+                    {
+                        phone_number = MobileNumber,
+                        body_text = "Payment Request",
+                        footer_text = session.SchoolName,
+                        amount = decimal.Parse(amount),
+                        type = "Fee-Payment",
+                        payment_link = finalUrl,
+                        order_ref_number = uniqueNumber
+                    };
+
+                    var options = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                        WriteIndented = true
+                    };
+
+                    var jsonContent = System.Text.Json.JsonSerializer.Serialize(paymentRequest, options);
+                    var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                    var Requestclient = new HttpClient();
+                    string whatsAppApiUrl = Payment_API;
+                    var response2 = Requestclient.PostAsync(whatsAppApiUrl, httpContent).GetAwaiter().GetResult();
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+        }
+        #endregion
+
+
+       
+     
+        #region Private Methods
+        private decimal GetFineAmount(TutnInvoice Entity, SchlAccountSetting accountSetting, IQueryable<TutnDueDateFine> fineSetting, Nullable<DateTime> LastPaymentDate)
+        {
+            #region Fine Amount
+            decimal fineAmountPerDay = decimal.Zero;
+            int fineMinDay = 0;
+            int fineMaxDay = 0;
+            decimal fineAmount = decimal.Zero;
+
+            if (accountSetting != null && !(Entity.IsExcludeFine ?? false))
+            {
+                if (accountSetting.IsDayWiseFineCalculated == true)
+                {
+                    if (fineSetting.FirstOrDefault() != null)
+                    {
+                        fineAmountPerDay = fineSetting.FirstOrDefault().Amount ?? 0;
+                        fineMinDay = fineSetting.FirstOrDefault().MinimumDay ?? 0;
+                        fineMaxDay = fineSetting.FirstOrDefault().MaximumDay ?? 0;
+                    }
+                    if (LastPaymentDate.HasValue && Entity.PayByDate < LastPaymentDate)
+                    {
+                        int days = ((DateTime.Today - LastPaymentDate) as TimeSpan?).Value.Days;
+                        if (days > 0)
+                            fineAmount = fineAmountPerDay * days;
+                    }
+                    else
+                    {
+                        if (Entity.PayByDate < DateTime.Today)
+                        {
+                            int days = ((DateTime.Today - Entity.PayByDate) as TimeSpan?).Value.Days;
+                            if (days > 0)
+                                fineAmount = fineAmountPerDay * days;
+                        }
+                    }
+                    return fineAmount;
+                }
+                else
+                {
+                    int dueDuration = 0;
+                    int DatedeffValue;
+
+                    if (LastPaymentDate.HasValue)
+                    {
+                        DatedeffValue = DateTime.Compare(LastPaymentDate ?? DateTime.Today, Entity.PayByDate ?? DateTime.Today);
+                        if (DatedeffValue > 0)
+                            dueDuration = ((DateTime.Today - LastPaymentDate) as TimeSpan?).Value.Days;
+                        else
+                            dueDuration = ((DateTime.Today - Entity.PayByDate) as TimeSpan?).Value.Days;
+
+                    }
+                    else
+                        dueDuration = ((DateTime.Today - Entity.PayByDate) as TimeSpan?).Value.Days;
+                    if (dueDuration > 0)
+                    {
+                        var selectedItem = fineSetting.Where(c => c.MinimumDay <= dueDuration && c.MaximumDay >= dueDuration).FirstOrDefault();
+                        if (selectedItem != null)
+                        {
+                            fineAmount = selectedItem.Amount ?? decimal.Zero;
+                            return fineAmount;
+                        }
+                    }
+                }
+            }
+            return fineAmount;
+
+
+            #endregion
+        }
+
+        public static string byteToHexString(byte[] byData)
+        {
+            StringBuilder sb = new StringBuilder((byData.Length * 2));
+            for (int i = 0; (i < byData.Length); i++)
+            {
+                int v = (byData[i] & 255);
+                if ((v < 16))
+                {
+                    sb.Append('0');
+                }
+
+                sb.Append(v.ToString("X"));
+
+            }
+
+            return sb.ToString();
+        }
+        private string EncodedStringToBase64(string text)
+        {
+            //string text = "NAVIN";
+            byte[] toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(text);
+            string returnValue = System.Convert.ToBase64String(toEncodeAsBytes);
+            string url = HttpUtility.UrlEncode(returnValue);
+            return url;
+        }
+
+        private string getCurrentDateAndTime()
+        {
+            var dat = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+            dat = dat.Replace(" ", "%20");
+            return dat;
+        }
+
+        public void LoadPaymentSessionValue(TutnPaymentGateway payment, EdmatixBaseSessionValues session, Guid TransacionID, string ReferenceNumber, string RequestURL, Guid StudentId, string Amount)
+        {
+
+
+            EdmatixContext context = new EdmatixContext();
+            SingeltonContext<EdmatixContext> instance = SingeltonContext<EdmatixContext>.Instance;
+            TutnPaymentSession objTutnPaymentSession = new TutnPaymentSession
+            {
+                Id = TransacionID,
+                DeleteStatus = false,
+                StudentId = StudentId,
+                SchoolId = session.SchoolID,
+                SchoolYearId = session.SchoolYearID,
+                ParentId = null,
+                PaymentAmount = Amount,
+                EncryptedString = payment.EncryptedString,
+                SuccessUrl = null
+            };
+
+            objTutnPaymentSession.OrganizationCode = session.ORGCode + " - Whatsapp";
+
+
+            objTutnPaymentSession.PaymentReferenceNumber = ReferenceNumber;
+            objTutnPaymentSession.PaytmentUrl = RequestURL;
+            //foreach (PortalInvoiceFeeItemDetail strInvoice in session.InvoiceDetailList)
+            string strInvoiceNumber = string.Empty;
+
+            objTutnPaymentSession.CreatedBy = "super";
+            objTutnPaymentSession.CreatedOn = DateTime.Now;
+            objTutnPaymentSession.LastUpdatedBy = "super";
+            objTutnPaymentSession.LastUpdatedOn = DateTime.Now;
+            objTutnPaymentSession.InvoiceNumber = strInvoiceNumber;
+
+            context.TutnPaymentSession.Add(objTutnPaymentSession);
+            context.SaveChanges();
+
+        }
+
+        private decimal GetFineAmount(EdmatixContext context, TutnInvoice Entity, SchlAccountSetting accountSetting, IQueryable<TutnDueDateFine> fineSetting, EdmatixBaseSessionValues session, Nullable<DateTime> LastPaymentDate)
+        {
+            #region Fine Amount
+            decimal fineAmountPerDay = decimal.Zero;
+            int fineMinDay = 0;
+            int fineMaxDay = 0;
+            decimal fineAmount = decimal.Zero;
+
+            if (accountSetting != null && !(Entity.IsExcludeFine ?? false))
+            {
+                if (accountSetting.IsDayWiseFineCalculated == true)
+                {
+                    if (fineSetting.FirstOrDefault() != null)
+                    {
+                        fineAmountPerDay = fineSetting.FirstOrDefault().Amount ?? 0;
+                        fineMinDay = fineSetting.FirstOrDefault().MinimumDay ?? 0;
+                        fineMaxDay = fineSetting.FirstOrDefault().MaximumDay ?? 0;
+                    }
+                    if (LastPaymentDate.HasValue && Entity.PayByDate < LastPaymentDate)
+                    {
+                        int days = ((DateTime.Today - LastPaymentDate) as TimeSpan?).Value.Days;
+                        if (days > 0)
+                            fineAmount = fineAmountPerDay * days;
+                    }
+                    else
+                    {
+                        if (Entity.PayByDate < DateTime.Today)
+                        {
+                            int days = ((DateTime.Today - Entity.PayByDate) as TimeSpan?).Value.Days;
+                            if (days > 0)
+                                fineAmount = fineAmountPerDay * days;
+                        }
+                    }
+                    return fineAmount;
+                }
+                else
+                {
+                    int dueDuration = 0;
+                    int DatedeffValue;
+
+                    if (LastPaymentDate.HasValue)
+                    {
+                        DatedeffValue = DateTime.Compare(LastPaymentDate ?? DateTime.Today, Entity.PayByDate ?? DateTime.Today);
+                        if (DatedeffValue > 0)
+                            dueDuration = ((DateTime.Today - LastPaymentDate) as TimeSpan?).Value.Days;
+                        else
+                            dueDuration = ((DateTime.Today - Entity.PayByDate) as TimeSpan?).Value.Days;
+
+                    }
+                    else
+                        dueDuration = ((DateTime.Today - Entity.PayByDate) as TimeSpan?).Value.Days;
+                    if (dueDuration > 0)
+                    {
+                        var selectedItem = fineSetting.Where(c => c.MinimumDay <= dueDuration && c.MaximumDay >= dueDuration).FirstOrDefault();
+                        if (selectedItem != null)
+                        {
+                            fineAmount = selectedItem.Amount ?? decimal.Zero;
+                            return fineAmount;
+                        }
+                    }
+                }
+            }
+            return fineAmount;
+
+
+            #endregion
+        }
+        #endregion
+        #region classes
+        #region spvn_whatsapp classes
+        public class WhatsappDetails
+        {
+            public string MobileNumber { get; set; }
+            public string Message { get; set; }
+            public string ParentName { get; set; }
+            public string StudentName { get; set; }
+            public string GradelevelName { get; set; }
+            public string GradelevelSectionName { get; set; }
+            public string AttendanceCode { get; set; }
+            public string AttendanceDate { get; set; }
+            public string FeeDueAmount { get; set; }
+            public string PocketMoney { get; set; }
+            public string StudentId { get; set; }
+
+            public string Marks { get; set; }
+
+            public string TotalMarks { get; set; }
+            public string Link { get; set; }
+
+        }
+        public class ProductInfo
+        {
+            public string ProductID { get; set; }
+            public string ProductName { get; set; }
+            public decimal? Amount { get; set; }
+            public Boolean IsTaxable { get; set; }
+        }
+        public class InvioceFineDetails
+        {
+            public decimal? Amount { get; set; }
+            public Guid Id { set; get; }
+        }
+        public class ATOM_WhatsAPPPaymentRequest
+        {
+            public string phone_number { get; set; }
+            public string body_text { get; set; }
+            public string footer_text { get; set; }
+            public decimal amount { get; set; }
+            public string type { get; set; }
+            public string payment_link { get; set; }
+            public string order_ref_number { get; set; }
+            public string return_url { get; set; }
+        }
+        #endregion
+        #region Meta Send Whats App Message Classess
+        public class WhatsAppPayload
+        {
+            public string messaging_product { get; set; }
+            public string to { get; set; }
+            public string type { get; set; }
+            public Template template { get; set; }
+        }
+
+        public class Template
+        {
+            public string name { get; set; }
+            public Language language { get; set; }
+            public List<Component> components { get; set; }
+        }
+
+        public class Language
+        {
+            public string code { get; set; }
+        }
+
+        public class Component
+        {
+            public string type { get; set; }
+            public List<Parameter> parameters { get; set; }
+         
+        }
+
+        public class Parameter
+        {
+            public string type { get; set; }
+            public string text { get; set; }
+            public Image? image { get; set; }
+            public Document? document { get; set; }
+        }
+        public class Image
+        {
+            [JsonProperty("id")]   
+            public string ID { get; set; }
+        }
+        public class Document
+        {
+            [JsonProperty("id")]
+            public string ID { get; set; }
+            public string filename { get; set; }
+        }
+
+        #endregion
+        #region Meta Template Mapping Image Properties
+        public class TemplateComponent
+        {
+            public string Type { get; set; }
+            public string Format { get; set; }
+            public string Text { get; set; }
+            public Example Example { get; set; }
+        }
+
+        public class Example
+        {
+            [JsonPropertyName("body_text")]
+            public List<List<string>> BodyText { get; set; }
+
+            [JsonPropertyName("header_handle")]
+            public List<string> HeaderHandle { get; set; }
+        }
+
+        public class TemplateDetail
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+            public string ParameterFormat { get; set; }
+            public List<TemplateComponent> Components { get; set; }
+            public string Language { get; set; }
+            public string Status { get; set; }
+            public string Category { get; set; }
+        }
+
+        public class GetTemplateCriteria
+        {
+           
+            public List<TemplateDetail> GetTemplateDetails { get; set; }
+        }
+        #endregion
+        public class Files
+        {
+            public string FileName { get; set; }
+            public byte[] Attachment { get; set; }
+
+        }
+        #endregion
+    }
+
+
+}

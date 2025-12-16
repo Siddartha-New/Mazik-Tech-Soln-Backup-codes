@@ -1,0 +1,193 @@
+using Edmatix.ParentPortal;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Graph;
+using Newtonsoft.Json;
+using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Text;
+
+public class EaseBuzzHelper
+{
+    #region Global Params
+    public string salt;
+    public string Key;
+    public string gen_hash;
+    public string easebuzz_merchant_key = string.Empty;
+    public string is_enable_iframe;
+    public string is_enable_seamless;
+    string URL;
+    string loginurl;
+    string Email;
+    string MobileNumber;
+    string ProductID;
+    string Show_payment_mode = string.Empty;
+    string split_payments = string.Empty;
+    string sub_merchant_id = string.Empty;
+    #endregion
+
+    public string GenerateURL(PortalPaymentGateway paymentDetail, Guid TransactionID, LoginSessionDetails session, StdtPersonalInfo stdtEntity, List<string> ProductIDs)
+    {
+
+        #region payload
+        salt = paymentDetail.CustomerCode;
+        Key = paymentDetail.CustomerAccountNumber;
+        loginurl = paymentDetail.LoginURL;
+
+
+        string Amount = paymentDetail.Amount;
+        #region Mandatory params
+        string Firstname = stdtEntity.FirstName + "" + stdtEntity.LastName;
+        if (session.LoginUserEmail != string.Empty && session.LoginUserMobileNumber != string.Empty)
+        {
+            Email = session.LoginUserEmail;
+            MobileNumber = session.LoginUserMobileNumber;
+        }
+        else
+        {
+            Email = "connect@mazikglobal.com";
+            MobileNumber = "1234567890";
+        }
+
+        if (ProductIDs != null)
+        {
+            sub_merchant_id = string.Join("", ProductIDs);
+            ProductID = session.SchoolName;
+        }
+        else
+        {
+            ProductID = session.SchoolName;
+        }
+        #endregion
+        string surl = paymentDetail.ReturnURL;
+        string furl = paymentDetail.ReturnURL;
+        //From our End we need pass 2 parms like Transcation Id and paymentreference number.
+        string Txnid = TransactionID.ToString();
+        string UDF1 = paymentDetail.ClientCode.ToString();
+        string UDF2 = session.DbName;
+        #region Optional params
+        string UDF3 = stdtEntity.StudentNumber;
+        string UDF4 = stdtEntity.FirstName  + " " + stdtEntity.LastName;
+        string UDF5 = string.Empty;
+        string UDF6 = string.Empty;
+        string UDF7 = string.Empty;
+        string UDF8 = string.Empty;
+        string UDF9 = string.Empty;
+        string UDF10 = string.Empty;
+        #endregion
+
+        #endregion
+        #region Add parms to dict
+        Dictionary<string, string> dict = new Dictionary<string, string>();
+        dict.Add("txnid", Txnid);
+        dict.Add("key", Key);
+        dict.Add("amount", Amount);
+        dict.Add("firstname", Firstname.Trim());
+        dict.Add("email", Email.Trim());
+        dict.Add("phone", MobileNumber.Trim());
+        dict.Add("productinfo", ProductID);
+        dict.Add("surl", surl.Trim());
+        dict.Add("furl", furl.Trim());
+        dict.Add("udf1", UDF1.Trim());
+        dict.Add("udf2", UDF2.Trim());
+        dict.Add("udf3", UDF3.Trim());
+        dict.Add("udf4", UDF4.Trim());
+        dict.Add("udf5", UDF5.Trim());
+        dict.Add("udf6", UDF6.Trim());
+        dict.Add("udf7", UDF7.Trim());
+        dict.Add("udf8", UDF8.Trim());
+        dict.Add("udf9", UDF9.Trim());
+        dict.Add("udf10", UDF10.Trim());
+        dict.Add("show_payment_mode", Show_payment_mode.Trim());
+        if (split_payments.Length > 0)
+        {
+            dict.Add("split_payments", split_payments);
+        }
+        if (sub_merchant_id.Length > 0)
+        {
+            dict.Add("sub_merchant_id", sub_merchant_id);
+        }
+        #endregion
+        #region Payment Intatition
+        this.initiatePaymentAPI(dict, loginurl);
+        paymentDetail.LoadPaymentSessionValue(paymentDetail, session, TransactionID, UDF1, URL);
+        #endregion
+        return URL;
+    }
+    #region Payment Intatation API
+    private string initiatePaymentAPI(Dictionary<string, string> dict, string loginurl)
+    {
+        string result = string.Empty;
+        try
+        {
+            if (dict != null)
+            {
+                // generate hash
+                string hashVarsSeq = dict["key"] + "|" + dict["txnid"] + "|" + dict["amount"] + "|" + dict["productinfo"] + "|" + dict["firstname"] + "|"
+                    + dict["email"] + "|" + dict["udf1"] + "|" + dict["udf2"] + "|" + dict["udf3"] + "|" + dict["udf4"] + "|" + dict["udf5"] + "|" + dict["udf6"] + "|" + dict["udf7"] + "|"
+                    + dict["udf8"] + "|" + dict["udf9"] + "|" + dict["udf10"] + "|" + salt;
+
+                gen_hash = SHAHashing(hashVarsSeq).ToLower();
+
+                dict.Add("hash", gen_hash);
+
+                var handler = new HttpClientHandler
+                {
+                    SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13//For tls security ciphers.
+                };
+                ;
+                //Check Status Api weather the Payment Is Safe Or Not.
+                var client = new RestClient(loginurl);
+                RestRequest Request = new RestRequest("/payment/initiateLink");
+                foreach (var Item in dict)
+                {
+                    Request.AddParameter(Item.Key, Item.Value);
+                }
+                var Status_Response = client.Post(Request);
+
+                var Response = JsonConvert.DeserializeObject<Dictionary<string, string>>(Status_Response.Content.ToString());
+
+
+                if (Response != null && Response["status"] == "1" && !string.IsNullOrEmpty(Response["data"]))
+                {
+                    result = loginurl + "/pay/" + Response["data"];
+                }
+                else
+                {
+                    result = Response["status"];
+
+                }
+
+                URL = result;
+            }
+        }
+        catch(Exception ex)
+        {
+
+        }
+        return result;
+
+    }
+    #endregion
+    public string SHAHashing(string text)
+    {
+
+        byte[] message = Encoding.UTF8.GetBytes(text);
+
+        UnicodeEncoding UE = new UnicodeEncoding();
+        byte[] hashValue;
+        SHA512Managed hashString = new SHA512Managed();
+        string hex = "";
+        hashValue = hashString.ComputeHash(message);
+
+        foreach (byte x in hashValue)
+        {
+            hex += String.Format("{0:x2}", x);
+        }
+        return hex;
+    }
+}

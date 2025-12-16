@@ -1,0 +1,322 @@
+using Csla;
+using Edmatix.Entity;
+using Edmatix.Model;
+using ExPro.Model.Base;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
+using static Edmatix.Model.SMSCommunication;
+
+[AllowAnonymous]
+[Route("BioMetricAttendance/{*catchall}")]
+public class BioMetricAttendance : Controller
+{
+
+    public Guid StudentPersonalId = Guid.Empty;
+    public Guid GradeLevelID = Guid.Empty;
+    public Guid GradeSectionID = Guid.Empty;
+    public Guid SchoolID = Guid.Empty;
+    public Guid YearID = Guid.Empty;
+    public string StudentName = string.Empty;
+    string biometricType = string.Empty;
+    string StudentNumber = string.Empty;
+    string EmployeeNumber = string.Empty;
+    string OrgId = string.Empty;
+    string DbName=string.Empty;
+
+    public async Task<IActionResult> Index()
+    {
+        string rawQuery = string.Empty;
+
+        var form = HttpContext.Request.QueryString.Value;
+        try
+        {
+            rawQuery = HttpContext.Request.QueryString.Value;
+        }
+        catch (Exception ex)
+        {
+            return Ok("Transcation Failure");
+        }
+
+
+        if (string.IsNullOrWhiteSpace(rawQuery))
+            return BadRequest("No data provided.");
+
+        string cleaned = rawQuery.Replace("?", "")
+                                 .Replace("$", "")
+                                 .Replace("*", "")
+                                 .Replace("\r", "")
+                                 .Replace("\n", "")
+                                 .Trim();
+
+
+        string[] records = cleaned.Split(',');
+
+        List<BioMetricAttedance> BioMetricRecords = new List<BioMetricAttedance>();
+        string orgId = string.Empty;
+        string machineId = string.Empty;
+        string BioID = string.Empty;
+        string rawTimestamp = string.Empty;
+        foreach (var record in records)
+        {
+            var parts = record.Split('&');
+            if (parts.Length == 4)
+            {
+
+                orgId = parts[0];
+                OrgId = orgId;
+                machineId = parts[1];
+                BioID = parts[2];
+                rawTimestamp = parts[3];
+            }
+            else
+            {
+                BioID = parts[0];
+                rawTimestamp = parts[1];
+            }
+            try
+            {
+                DateTime timestamp = DateTime.ParseExact(rawTimestamp, "ddMMyyyyHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                string formatted = timestamp.ToString("yyyy-MM-dd HH:mm:ss");
+
+                BioMetricRecords.Add(new BioMetricAttedance
+                {
+                    OrgID = orgId,
+                    MachineID = machineId,
+                    BioID = BioID,
+                    TimeStamp = formatted
+                });
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+
+        }
+         GetDBDetails();
+        _ = Task.Run(() => InsertRecords(BioMetricRecords));
+        //InsertRecords(BioMetricRecords);
+        return Ok("$RFID=0#");
+    }
+
+
+    [NonAction]
+    public void GetDBDetails()
+    {
+        var connString = ConfigHelper.GetConnectionString("AppCommon");
+        using (SqlConnection sqlCon = new SqlConnection(connString))
+        {
+            sqlCon.Open();
+            string sqlQuery = "select * from DBConfig where IsActive=1 and IsForUS=0 and OrganizationBiocode = '" + OrgId + "'";
+            using (SqlCommand command = new SqlCommand(sqlQuery, sqlCon))
+            {
+                using (SqlDataReader reader = command.ExecuteReader(CommandBehavior.CloseConnection))
+                {
+                    while (reader.Read())
+                    {
+                        DbName = reader["DbName"].ToString().ToUpper();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    private void InsertRecords(List<BioMetricAttedance> BioMetricRecords)
+    {
+        EdmatixBaseSessionValues session = new EdmatixBaseSessionValues();
+        if (!string.IsNullOrEmpty(DbName)) 
+        { 
+            session.DbName = DbName;
+            DbName = session.DbName;
+        }
+        else
+        {
+            session.DbName = "JubileeHighSchool";
+            DbName = session.DbName;
+        }
+        ApplicationContext.GlobalContext["EdmatixSession"] = session;
+        foreach (var details in BioMetricRecords)
+        {
+            var context = new EdmatixContext();
+            var Empl_details = context.EmplPersonalInfo.Include(c => c.EmplCalendar).Where(c => c.Rfid == details.BioID).FirstOrDefault();
+            if (Empl_details != null)
+            {
+                EmployeeNumber = Empl_details.EmployeeNumber;
+                biometricType = "Employee";
+            }
+            else
+            {
+                var studentDetails = context.StdtPersonalInfo.Where(c => c.Rfid == details.BioID).FirstOrDefault();
+                if (studentDetails != null)
+                {
+                    StudentNumber = studentDetails.StudentNumber;
+                }
+                biometricType = "Student";
+            }
+
+
+
+            switch (biometricType)
+            {
+                case "Employee":
+                    var ctx = new EdmatixContext();
+                    var empdetails = ctx.EmplPersonalInfo.Include(c => c.EmplCalendar).Where(c => c.EmployeeNumber == this.EmployeeNumber).FirstOrDefault();
+                    if (empdetails != null)
+                    {
+                        EmplDailyAttendance empattendance = new EmplDailyAttendance();
+                        var date = DateTime.Parse(details.TimeStamp);
+                        int Yearcode = date.Year;
+
+                        empattendance.Id = Guid.NewGuid();
+                        empattendance.EmployeePersonalId = empdetails.Id;
+                        empattendance.Date = DateTime.Parse(details.TimeStamp);
+                        empattendance.Code = "Present";
+                        empattendance.CreatedBy = "Bio-MetricAttendance";
+                        empattendance.IsBioMetric = true;
+                        empattendance.YearCode = Yearcode.ToString();
+                        empattendance.DeleteStatus = false;
+                        empattendance.CreatedBy = "Biometric-Machine";
+                        empattendance.CreatedOn = DateTime.Now;
+                        empattendance.CreatedBy = "Biometric-Machine";
+                        empattendance.LastUpdatedBy = "Biometric-Machine";
+                        empattendance.LastUpdatedOn = DateTime.Now;
+                        empattendance.YearId = empdetails.EmplCalendar.FirstOrDefault()?.YearId ?? Guid.Empty;
+                        ctx.EmplDailyAttendance.Add(empattendance);
+                        ctx.SaveChanges();
+                        AppNotification("Employee", empattendance.EmployeePersonalId ?? Guid.Empty);
+
+                    }
+                    break;
+                case "Student":
+                    var studentctx = new EdmatixContext();
+                    var studentDetails = (from studentdetails in studentctx.StdtPersonalInfo
+                                          join enrollment in studentctx.StdtEnrollment on studentdetails.Id equals enrollment.StudentPersonalId
+                                          where studentdetails.StudentNumber == this.StudentNumber
+                                          select new
+                                          {
+                                              StudentDetails = studentdetails,
+                                              Enrollment = enrollment
+                                          }).FirstOrDefault();
+                    if (studentDetails != null)
+                    {
+                        this.StudentPersonalId = studentDetails.Enrollment.StudentPersonalId ?? Guid.Empty;
+                        this.GradeLevelID = studentDetails.Enrollment.GradeLevelId ?? Guid.Empty;
+                        this.GradeSectionID = studentDetails.Enrollment.GradeSectionId ?? Guid.Empty;
+                        this.SchoolID = studentDetails.Enrollment.SchoolId ?? Guid.Empty;
+                        this.YearID = studentDetails.Enrollment.YearId ?? Guid.Empty;
+                        StudentName = studentDetails.StudentDetails.FirstName + " " + studentDetails.StudentDetails.LastName;
+                    }
+                    if (this.StudentPersonalId != Guid.Empty)
+                    {
+                        var date = DateTime.Parse(details.TimeStamp);
+                        int Yearcode = date.Year;
+                        StdtDailyAttendance bioattendance = new StdtDailyAttendance();
+                        bioattendance.Id = Guid.NewGuid();
+                        bioattendance.StudentPersonalId = this.StudentPersonalId;
+                        bioattendance.GradeLevelId = this.GradeLevelID;
+                        bioattendance.GradeSectionId = this.GradeSectionID;
+                        bioattendance.SchoolId = this.SchoolID;
+                        bioattendance.YearId = this.YearID;
+                        bioattendance.IsBioMetric = true;
+                        bioattendance.YearCode = Yearcode.ToString();
+                        bioattendance.Code = "Present";
+                        bioattendance.Date = DateTime.Parse(details.TimeStamp);
+                        bioattendance.DeleteStatus = false;
+                        bioattendance.CreatedBy = "Biometric-Machine";
+                        bioattendance.CreatedOn = DateTime.Now;
+                        bioattendance.CreatedBy = "Biometric-Machine";
+                        bioattendance.LastUpdatedBy = "Biometric-Machine";
+                        bioattendance.LastUpdatedOn = DateTime.Now;
+                        studentctx.StdtDailyAttendance.Add(bioattendance);
+                        studentctx.SaveChanges();
+                        AppNotification("Student", bioattendance.StudentPersonalId ?? Guid.Empty);
+                    }
+                    break;
+            }
+
+        }
+    }
+
+
+    private void AppNotification(string Type, Guid ID)
+    {
+        var ctx = new EdmatixContext();
+        SendPushNotificationHub notificationHub = new SendPushNotificationHub();
+        var timestamp = DateTime.Now;
+
+        List<string> DeviceTokens = new List<string>();
+        List<string> MobileNumbers = new List<string>();
+        
+        switch (Type)
+        {
+            case "Employee":
+                if (ID != Guid.Empty)
+                {
+                    var Employee_info = ctx.User.Where(c => c.Id == ID && c.DeleteStatus != true).FirstOrDefault();
+                    if (Employee_info != null)
+                    {
+
+                        notificationHub.ApiType = ApiTargetType.AndroidDevices;
+                        notificationHub.AppService = "Teacher App";
+                        notificationHub.IsNew = true;
+                        notificationHub.Dbname = DbName;
+                        notificationHub.Title = "Bio-MeticAttendance By Employee" + " " + Employee_info.UserId;
+                        notificationHub.Body = timestamp.ToString();
+                        notificationHub.AndroidDevices.Add(Employee_info.DeviceToken);
+                        var resp = notificationHub.SendNotification();
+                        DeviceTokens.Clear();
+                    }
+
+                }
+                break;
+            case "Student":
+                var DevicesList = (from studentcontact in ctx.StdtStudentContact
+                                   join contact in ctx.StdtContact on studentcontact.ContactId equals contact.Id
+                                   join parentLogin in ctx.StdtParentLoginDetail on contact.ParentId equals parentLogin.UserId
+                                   where parentLogin.DeleteStatus == false && studentcontact.StudentPersonalId == this.StudentPersonalId && contact.IsPrimaryParent == true
+                                   select new
+                                   {
+                                       DeviceTokens = parentLogin.DeviceToken,
+                                       MobileNumbers = parentLogin.UserId
+                                   }).Distinct().ToList();
+                var notification = new BiometricNotification();
+
+                if (DevicesList != null)
+                {
+                    foreach (var tokens in DevicesList)
+                    {
+                        notification.Dbname = DbName;
+                        notification.StudentName = StudentName;
+                        DeviceTokens.Add(tokens.DeviceTokens);
+                        var resp = notification.sendBioMetricParentNotification(DeviceTokens).GetAwaiter().GetResult();
+                        if (tokens.MobileNumbers != null)
+                        {
+                            MobileNumbers.Add(tokens.MobileNumbers);
+                           // var response = notification.SendSmsNotification(MobileNumbers).GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                break;
+
+        }
+    }
+}
+
+#region Helper Clasess
+public class BioMetricAttedance
+{
+    public string OrgID { get; set; }
+    public string MachineID { get; set; }
+    public string BioID { get; set; }
+    public string EmpID { get; set; }
+    public string TimeStamp { get; set; }
+}
+#endregion
+

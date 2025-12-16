@@ -1,0 +1,118 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Collections.Specialized;
+using Edmatix.ParentPortal;
+using ExPro.Model.Base;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Data;
+using System.Xml.Linq;
+using Csla;
+
+namespace Edmatix.Controllers
+{
+    [AllowAnonymous]
+    [Route("EaseBuzz/{*catchall}")]
+    public class EasebuzzController : Controller
+    {
+        NameValueCollection Params = new NameValueCollection();
+        LoginSessionDetails session = new LoginSessionDetails();
+        public async Task<IActionResult> Index()
+        {
+            #region Main Controller code
+            try
+            {
+                if (HttpContext.Request.ContentType != null)
+                {
+                    var formCollection = await HttpContext.Request.ReadFormAsync();
+                    var Params = formCollection.ToDictionary(x => x.Key, x => x.Value.ToString());
+                    Params = Params.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                    session.TransactionAmount = Params["amount"];
+                    if (Params["bank_ref_num"] != null)
+                    {
+                        session.BankReferenceNumber = Params["bank_ref_num"];
+
+                    }
+                    else
+                    {
+                        session.BankReferenceNumber = "";
+                    }
+                    session.PaymentGatewayReferenceNumber = Params["easepayid"];
+                    if (Params["status"] == "success")
+                    {
+                        session.StatusMessage = "Success";
+                    }
+                    else if (Params["status"] == "failure")
+                    {
+                        session.StatusMessage = "Failed";
+                    }
+                    else if (Params["status"] == "userCancelled")
+                    {
+                        session.StatusMessage = "userCancelled";
+                    }
+                    else { session.StatusMessage = Params["status"]; }
+
+                    session.BankName = "Online";
+                    session.TransactionDate = DateTime.Now.ToString();
+                    var TransactionID = Params["txnid"];
+                    session.DbName = Params["udf2"];
+                    session.TransactionNumber = TransactionID;
+                    session.PaymentFrom = "Parent";
+
+                    if (session.DbName != "")
+                    {
+                        var connString = ConfigHelper.GetConnectionString(session.DbName);
+                        using (SqlConnection con = new SqlConnection(connString))
+                        {
+                            using (SqlCommand cmd = new SqlCommand("Proc_PaymentGatewayPendingReceiptsInsert", con))
+                            {
+                                cmd.CommandTimeout = 120;
+
+                                cmd.CommandType = CommandType.StoredProcedure;
+                                cmd.Parameters.Add("@TransactionID", SqlDbType.UniqueIdentifier).Value = new Guid(session.TransactionNumber);
+                                cmd.Parameters.Add("@TransactionDate", SqlDbType.DateTime).Value = session.TransactionDate;
+                                cmd.Parameters.Add("@PaymentReferenceNumber", SqlDbType.NVarChar).Value = session.PaymentGatewayReferenceNumber;
+                                cmd.Parameters.Add("@BankReferenceNumber", SqlDbType.NVarChar).Value = session.BankReferenceNumber;
+                                cmd.Parameters.Add("@TransactionAmount", SqlDbType.Decimal).Value = Convert.ToDecimal(session.TransactionAmount);
+                                cmd.Parameters.Add("@BankName", SqlDbType.NVarChar).Value = session.BankName;
+                                cmd.Parameters.Add("@StatusMessage", SqlDbType.NVarChar).Value = session.StatusMessage;
+
+                                if (cmd.Connection.State != ConnectionState.Open)
+                                {
+                                    cmd.Connection.Open();
+                                }
+                                using (DbDataReader reader = cmd.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        session.TransactionAmount = reader["OutputAmount"].ToString();
+                                    }
+                                    reader.Close();
+                                }
+                                ApplicationContext.GlobalContext["EdmatixSession"] = session;
+                            }
+                        }
+
+                    }
+                }
+
+
+
+            }
+
+            catch (Exception ex)
+            {
+
+
+            }
+            #endregion
+            return View(session);
+        }
+
+    }
+}

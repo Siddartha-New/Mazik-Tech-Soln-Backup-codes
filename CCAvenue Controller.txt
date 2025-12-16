@@ -1,0 +1,250 @@
+using Csla;
+using Edmatix.ParentPortal;
+using ExPro.Model.Base;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using CCA.Util;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Specialized;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Data;  
+using System.IO;
+using System.Net;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Edmatix.Controllers
+{
+    [AllowAnonymous]
+    [Route("HDFCCCA_JPro/{*catchall}")]
+    public class HDFCCCA_JProController : Controller
+    {
+        private string WorkingKey = "38FBF6D6D6C4B7C8B33808C8CDDA2EE9";
+        private string Access_code = "AVUH44KL37CE91HUEC";
+        LoginSessionDetails session = new LoginSessionDetails();
+        
+
+        NameValueCollection Params = new NameValueCollection();
+        string encJson;
+        public async Task<IActionResult> Index()
+        {
+            #region commented
+            //LoginSessionDetails session1 = (LoginSessionDetails)ApplicationContext.GlobalContext["EdmatixSession"];
+            //if (session1 != null)
+            //{
+            //   // var dbconnectionString = ConfigHelper.GetConnectionString(session1.DbName);
+            //    #region commented
+            //    //using (SqlConnection con = new SqlConnection(dbconnectionString))
+            //    //{
+            //    //    string query = "Select CskKey,CustomerAccountNumber FROM TUTN_PaymentGateway WHERE SchoolID = {session1.SchoolID}";
+            //    //    using (SqlCommand cmd = new SqlCommand(query, con))
+            //    //    {
+
+            //    //        cmd.Parameters.AddWithValue("@SchoolID", session1.SchoolID);
+
+            //    //        con.Open();
+
+            //    //        using (SqlDataReader reader = cmd.ExecuteReader())
+            //    //        {
+            //    //            while (reader.Read())
+            //    //            {
+            //    //                WorkingKey = reader.GetString(0);
+            //    //                Access_code = reader.GetString(1);
+            //    //            }
+            //    //        }
+            //    //        con.Close();
+            //    //    }
+            //    //}
+            //}
+            #endregion
+            if (HttpContext.Request.ContentType != null)
+            {
+                try
+                {
+                    var parms = HttpContext.Request.ReadFormAsync().Result;
+                    CCACrypto ccaCrypto = new CCACrypto();
+                    string encResponse = ccaCrypto.Decrypt(parms["encResp"], WorkingKey);
+                    string[] finalResponse = encResponse.Split("&");
+                    foreach (string seg in finalResponse)
+                    {
+                        string[] parts = seg.Split('=');
+                        if (parts.Length > 0)
+                        {
+                            string key = parts[0].Trim();
+                            string value = parts[1].Trim();
+                            Params.Add(key, value);
+                        }
+                    }
+
+                    ApplicationContext.GlobalContext["EdmatixSession"] = session;
+                    var trackerid = Params["tracking_id"];
+                    var orderid = (Params["order_id"]);
+                    var transcation_ID = Params["merchant_param2"];
+                    var dbName = Params["merchant_param1"];
+                    var orderstatus = Params["order_status"];
+                    var amt = Params["amount"];
+                    session.PaymentFrom = "Parent";
+
+                    string orderStatusQueryJson = $"{{ \"reference_no\":\"{trackerid}\", \"order_no\":\"{orderid}\" }}";//hdfc
+                    string queryUrl = "https://api.ccavenue.com/apis/servlet/DoWebTrans";//Hdfc kit working
+                    encJson = ccaCrypto.Encrypt(orderStatusQueryJson, WorkingKey);
+                    string authQueryUrlParam = "enc_request=" + encJson + "&access_code=" + Access_code + "&command=orderStatusTracker&request_type=JSON&response_type=JSON";
+                    String message = postPaymentRequestToGateway(queryUrl, authQueryUrlParam);
+                    NameValueCollection param = getResponseMap(message);
+                    String status = "";
+                    String encResJson = "";
+
+                    if (param != null && param.Count == 2)
+                    {
+                        for (int i = 0; i < param.Count; i++)
+                        {
+                            if ("status".Equals(param.Keys[i]))
+                            {
+                                status = param[i];
+                            }
+                            if ("enc_response".Equals(param.Keys[i]))
+                            {
+                                encResJson = param[i];
+
+                            }
+                        }
+                        if (string.Empty != status && status == "0")
+                        {
+                            if (Params["order_status"] == "Success")
+                            {
+                                session.StatusMessage = "Success";
+                            }
+                            else if (Params["order_status"] == "Aborted")
+                            {
+                                session.StatusMessage = "Aborted";
+                            }
+                            else
+                            {
+                                session.StatusMessage = "Failure";
+                            }
+                            var ResJson = ccaCrypto.Decrypt(encResJson, WorkingKey);
+                            JObject orderStatusData = JsonConvert.DeserializeObject<JObject>(ResJson);
+                            session.TransactionAmount = orderStatusData["Order_Status_Result"]["order_gross_amt"].ToString();
+                            session.TransactionDate = orderStatusData["Order_Status_Result"]["order_date_time"].ToString();
+                            if (orderStatusData["Order_Status_Result"]["order_bank_ref_no"] != null)
+                            {
+                                session.BankReferenceNumber = orderStatusData["Order_Status_Result"]["order_bank_ref_no"].ToString();
+                            }
+                            else
+                            {
+                                session.BankReferenceNumber = "";
+                            }
+                            session.TransactionNumber = transcation_ID;
+                            session.PaymentGatewayReferenceNumber = orderStatusData["Order_Status_Result"]["reference_no"].ToString();
+                            session.StatusMessage = Params["order_status"];
+                            session.BankName = "Online";
+                            session.orderId = orderStatusData["Order_Status_Result"]["order_no"].ToString();
+                            if (dbName != "")
+                            {
+                                var connString = ConfigHelper.GetConnectionString(dbName);
+                                using (SqlConnection con = new SqlConnection(connString))
+                                {
+                                    using (SqlCommand cmd = new SqlCommand("Proc_CCAvenuePaymentGatewayPendingReceiptsInsert", con))
+                                    {
+                                        cmd.CommandTimeout = 120;
+
+                                        cmd.CommandType = CommandType.StoredProcedure;
+                                        cmd.Parameters.Add("@TransactionID", SqlDbType.UniqueIdentifier).Value = new Guid(session.TransactionNumber);
+                                        cmd.Parameters.Add("@TransactionDate", SqlDbType.DateTime).Value = session.TransactionDate;
+                                        cmd.Parameters.Add("@PaymentReferenceNumber", SqlDbType.NVarChar).Value = session.PaymentGatewayReferenceNumber;
+                                        cmd.Parameters.Add("@BankReferenceNumber", SqlDbType.NVarChar).Value = session.BankReferenceNumber;
+                                        cmd.Parameters.Add("@TransactionAmount", SqlDbType.Decimal).Value = Convert.ToDecimal(session.TransactionAmount);
+                                        cmd.Parameters.Add("@BankName", SqlDbType.NVarChar).Value = session.BankName;
+                                        cmd.Parameters.Add("@StatusMessage", SqlDbType.NVarChar).Value = session.StatusMessage;
+                                        cmd.Parameters.Add("@OrderID ", SqlDbType.NVarChar).Value = session.orderId;
+
+                                        if (cmd.Connection.State != ConnectionState.Open)
+                                        {
+                                            cmd.Connection.Open();
+                                        }
+                                        using (DbDataReader reader = cmd.ExecuteReader())
+                                        {
+                                            while (reader.Read())
+                                            {
+                                                session.TransactionAmount = reader["OutputAmount"].ToString();
+                                            }
+                                            reader.Close();
+                                        }
+                                        ApplicationContext.GlobalContext["EdmatixSession"] = session;
+                                    }
+                                }
+
+                            }
+                        }
+                        else if (!"".Equals(status) && status.Equals("1"))
+                        {
+                            Console.WriteLine("failure response from ccAvenues: " + encResJson);
+                        }
+
+                    }
+
+
+
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+            return View(session);
+        }
+       
+        private string postPaymentRequestToGateway(String queryUrl, String urlParam)
+        {
+            String message = "";
+            try
+            {
+                StreamWriter myWriter = null;
+                WebRequest objRequest = WebRequest.Create(queryUrl);
+                objRequest.Method = "POST";
+
+                objRequest.ContentType = "application/x-www-form-urlencoded";
+                myWriter = new System.IO.StreamWriter(objRequest.GetRequestStream());
+                myWriter.Write(urlParam);
+                myWriter.Close();
+
+                System.Net.HttpWebResponse objResponse = (System.Net.HttpWebResponse)objRequest.GetResponse();
+                using (System.IO.StreamReader sr = new System.IO.StreamReader(objResponse.GetResponseStream()))
+                {
+                    message = sr.ReadToEnd();
+
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.Write("Exception occured while connection." + exception);
+            }
+            return message;
+
+        }
+        private NameValueCollection getResponseMap(String message)
+        {
+            NameValueCollection Params = new NameValueCollection();
+            if (message != null || !"".Equals(message))
+            {
+                string[] segments = message.Split('&');
+                foreach (string seg in segments)
+                {
+                    string[] parts = seg.Split('=');
+                    if (parts.Length > 0)
+                    {
+                        string Key = parts[0].Trim();
+                        string Value = parts[1].Trim();
+                        Params.Add(Key, Value);
+                    }
+                }
+            }
+            return Params;
+        }
+
+    }
+}

@@ -1,0 +1,62 @@
+using CCA.Util;
+using ExPro.Model.Base;
+using Microsoft.EntityFrameworkCore;
+using Stripe;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+//hdfc has been changed in local database to CCAvenue.
+namespace Edmatix.ParentPortal
+{
+    public class CCAvenuePaymentGatewayHelper
+    {
+        CCACrypto ccaCrypto = new CCACrypto();
+         
+        public string GenerateURL(PortalPaymentGateway paymentDetail, Guid TransactionID, LoginSessionDetails session)
+        {
+            string encRequest = string.Empty;
+            CCACrypto ccaCrypto = new CCACrypto();
+            string WorkingKey = paymentDetail.CSKKey;
+            Guid dbtransactionID = Guid.NewGuid();
+            var merchant_Id = paymentDetail.CustomerCode;
+            var TransactionDate = DateTime.Today.ToString();
+            var transactionID = PortalPaymentGateway.GetUniqueKey(25);// RandomString(17);
+            var order_Id = transactionID.ToString();
+            var txn_Id = TransactionID.ToString();
+            var currency = "INR";
+            var amount = paymentDetail.Amount;
+            var rurl = paymentDetail.ReturnURL;
+            var curl = paymentDetail.ReturnURL;
+            var dbName = session.DbName;
+            var url = paymentDetail.LoginURL;
+            var acode = paymentDetail.CustomerAccountNumber.ToString();
+           
+            string strURL = "merchant_id=mid&order_id=rid&amount=amt&currency=txncrr&redirect_url=rul&cancel_url=crl&tnxdate=txndt&merchant_param1=dbName&merchant_param2=txnID";
+            strURL = strURL.Replace("mid", merchant_Id);
+            strURL = strURL.Replace("rid", order_Id);
+            strURL = strURL.Replace("amt", amount);
+            strURL = strURL.Replace("txncrr", currency);
+            strURL = strURL.Replace("rul", rurl);
+            strURL = strURL.Replace("crl", curl);
+            strURL = strURL.Replace("txndt", TransactionDate);
+            strURL = strURL.Replace("dbName", dbName);
+            strURL = strURL.Replace("txnID", txn_Id);
+            
+
+
+            encRequest = ccaCrypto.Encrypt(strURL, WorkingKey);
+
+            strURL = url + "&encRequest=" + encRequest + "&access_code=" + acode;
+
+            paymentDetail.LoadPaymentSessionValue(paymentDetail, session, TransactionID, order_Id, strURL);
+
+            return strURL.ToString();
+
+        }
+       
+    }
+}
