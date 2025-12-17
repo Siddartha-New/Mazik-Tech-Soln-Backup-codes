@@ -1,0 +1,128 @@
+    try
+    {
+        #region Parent App Fire Base Updated Code.
+        #region Request Parent payload dynamic
+        var dbconnectionString = ConfigHelper.GetConnectionString(this.Dbname);
+        var configurations = new List<PushNotifyConfiguration>();
+        using (SqlConnection con = new SqlConnection(dbconnectionString))
+        {
+            string query = "Select * FROM ORGN_PushNotifyConfiguration where IsParentApp = @IsParentApp";
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@IsParentApp", 1);
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            var config = new PushNotifyConfiguration
+                            {
+
+                                ProjectID = reader.GetString(1),
+                                PrivatekeyID = reader.GetString(2),
+                                Privatekey = reader.GetString(3),
+                                Clientemail = reader.GetString(4),
+                                ClientID = reader.GetString(5),
+                                ClientAPPcerturl = reader.GetString(6),
+                            };
+
+                            configurations.Add(config);
+                        }
+                    }
+                }
+            }
+        }
+
+        var auth_uri = "https://accounts.google.com/o/oauth2/auth";
+        var token_uri = "https://oauth2.googleapis.com/token";
+        var auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs";
+        var universe_domain = "googleapis.com";
+        #region Configration setup
+        foreach (var config in configurations)
+        {
+            Configuration = $@"{{
+        ""type"": ""service_account"",
+        ""project_id"": ""{config.ProjectID}"",
+        ""private_key_id"": ""{config.PrivatekeyID}"",
+        ""private_key"": ""{config.Privatekey}"",
+        ""client_email"": ""{config.Clientemail}"",
+        ""client_id"": ""{config.ClientID}"",
+        ""auth_uri"": ""{auth_uri}"",
+        ""token_uri"": ""{token_uri}"",
+        ""auth_provider_x509_cert_url"": ""{auth_provider_x509_cert_url}"",
+        ""client_x509_cert_url"": ""{config.ClientAPPcerturl}"",
+        ""universe_domain"": ""{universe_domain}""
+     }}";
+            Project_ID = config.ProjectID;
+        }
+        #endregion
+        
+        #endregion
+        #region Send Notification
+        string fileName = Configuration;
+        string scopes = "https://www.googleapis.com/auth/firebase.messaging";
+        GoogleCredential credential = GoogleCredential.FromJson(fileName).CreateScoped(scopes);
+        string bearerToken = await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+        var RequestURL = $@"https://fcm.googleapis.com/v1/projects/{Project_ID}/messages:send";
+        var clientHandler = new HttpClientHandler();
+        using (var client = new HttpClient(clientHandler))
+        {
+            client.BaseAddress = new Uri(RequestURL);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken); // Use the bearer token
+            string[] registrationIDs = pDeviceList.ToArray();
+            //var allItems = registrationIDs.Zip(Studentids, (registrationID, studentId) => new { registrationID, studentId });
+            //var allItems = registrationIDs.Zip(Studentids, (registrationID, studentId) => new { registrationID, studentId })
+            //       .Zip(StudentName, (item, studentName) => new { item.registrationID, item.studentId, studentName });
+
+            //Here i'm adding studentId and Notification Body for every notification studentId for Parent App redirection to module.
+            var allItems = registrationIDs.Zip(Studentids, (registrationID, studentId) => new { registrationID, studentId })
+                    .Zip(NotificationBody, (item, notificationbody) => new { item.registrationID, item.studentId, notificationbody });
+            foreach (var item in allItems)
+            {
+                Root rootObj = new Root
+                {
+                    message = new Message
+                    {
+                        token = item.registrationID,
+                        data = new Data
+                        {
+                            title = this.Title,
+                            body = item.notificationbody,
+                            studentId = item.studentId.ToString(),
+                        },
+                        notification = new Notification
+                        {
+                            title = this.Title,
+                            body = item.notificationbody,
+                        }
+                    }
+                };
+                Parent_payload = JsonConvert.SerializeObject(rootObj);
+                var content = new StringContent(Parent_payload, Encoding.UTF8, "application/json");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                HttpResponseMessage response = await client.PostAsync("", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    Response = await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    Response = response.StatusCode.ToString();
+                }
+
+
+            }
+
+        }
+
+        #endregion
+        #endregion
+    }
+    catch (Exception ex)
+    {
+
+    }
